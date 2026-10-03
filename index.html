@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Günlük Bakım Takibi</title>
 <meta name="description" content="On Field Daily Maintenance Report — günlük bakım takibi, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 /* ============================================================
    Günlük Bakım — Daily Maintenance Tracker
@@ -2107,6 +2113,14 @@ window.TYPE_TR = {
   }
   boot();
 })();
+</script>
+<script>
+/* PWA: ana ekrana ekleme + çevrimdışı çalışma */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
 </script>
 </body>
 </html>
