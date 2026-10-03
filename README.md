@@ -33,6 +33,8 @@ tarayıcıda açmanız yeterli (sunucu, kurulum ve internet gerektirmez).
   Türkçe arayüzde Türkçeleştirilir (DÖZER, TEKERLEKLİ EKSKAVATÖR, ...).
 - **Yedekleme** — tüm veriyi JSON olarak indirme / geri yükleme, tek tıkla
   kayıt temizleme, uyarı eşiği ayarı (1–30 gün).
+- **Mobil uyumlu** — telefonda geniş tablo kart listesine döner; detaylar ▸
+  düğmesiyle açılır, menü yatay kaydırılır, dokunmatik hedefler büyütülür.
 
 ## Uyarı kuralı
 

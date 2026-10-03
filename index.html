@@ -442,12 +442,139 @@ table.grid.compact th, table.grid.compact td { padding: 6px 8px; }
 
 .tag-row { display: flex; gap: 5px; flex-wrap: wrap; }
 
+/* ---------- Satır açma/kapama düğmesi (yalnızca mobilde görünür) ---------- */
+.row-toggle { display: none; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   main { padding: 12px; }
   .topbar { padding: 10px 12px; gap: 10px; }
   .top-actions { margin-left: 0; width: 100%; justify-content: space-between; }
   .kpi .k-value { font-size: 22px; }
+}
+
+/* ---------- Telefon düzeni (≤760px): tablolar kart listesine döner ---------- */
+@media (max-width: 760px) {
+  .topbar { padding: 8px 10px; gap: 8px; }
+  .brand .logo { width: 32px; height: 32px; font-size: 16px; }
+  .brand h1 { font-size: 14px; }
+  .brand small { display: none; }
+  .nav { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav button { padding: 7px 11px; font-size: 13px; white-space: nowrap; }
+  .top-actions { margin-left: auto; width: auto; }
+
+  main { padding: 10px; }
+  .page-title { font-size: 17px; }
+  .page-sub { margin-bottom: 12px; }
+  .card { padding: 12px; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px; }
+  .kpi { padding: 10px 12px; }
+  .kpi .k-value { font-size: 20px; }
+  .kpi .k-label { font-size: 10.5px; }
+
+  .toolbar .field { max-width: none; width: 100%; }
+  .toolbar .field .input, .toolbar .field select.input, .toolbar .field input.input { width: 100%; }
+  .date-nav { width: 100%; }
+  .date-nav input[type="date"] { flex: 1; min-width: 0; }
+  .toolbar .check-inline { padding-bottom: 0; }
+
+  .alert-item { flex-wrap: wrap; }
+  .alert-item .a-type { min-width: 100%; order: 3; }
+  .alert-item .a-no { min-width: auto; }
+
+  .chart { overflow-x: auto; gap: 4px; }
+  .chart .bar { flex: 0 0 24px; }
+  .chart .bar b { font-size: 9px; }
+
+  .day-card summary { padding: 10px 12px; gap: 8px; }
+  .day-card .d-body table { min-width: 0 !important; }
+
+  /* --- Geniş tablolar → kart görünümü --- */
+  .table-wrap { border: 0; background: transparent; max-height: none; overflow: visible; }
+  table.grid { min-width: 0 !important; width: 100%; }
+  table.grid thead { display: none; }
+  table.grid, table.grid tbody { display: block; }
+  table.grid tr {
+    display: block;
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin: 0 0 8px;
+    padding: 8px 10px;
+    box-shadow: var(--shadow);
+  }
+  table.grid tbody tr:hover td { background: transparent; }
+  table.grid tbody tr.visited td, table.grid tbody tr.visited:hover td { background: transparent; }
+  table.grid tbody tr.visited { background: #f6fef9; border-color: #bbf7d0; }
+  table.grid td {
+    display: block;
+    border: 0;
+    border-right: 0 !important;
+    padding: 3px 0;
+    background: transparent;
+    position: static;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto;
+    text-align: left;
+  }
+  table.grid .c-no { font-size: 15px; padding-right: 76px; }
+  table.grid .c-type { color: var(--muted); font-size: 12.5px; padding-right: 76px; }
+  table.grid .c-type small { display: inline; margin-left: 6px; }
+  table.grid .c-bm { font-size: 12.5px; }
+  table.grid .c-bm b { display: inline; margin-right: 6px; }
+  table.grid .c-bm small { display: inline; }
+  table.grid .c-chk { position: absolute; right: 10px; top: 8px; width: auto; padding: 0; }
+  table.grid .c-chk .cb { width: 26px; height: 26px; }
+
+  /* detay hücreleri gizli; ▸ ile açılır (yağ sütunları ayrı kuralda) */
+  table.grid:not(.compact) td:not(.c-chk):not(.c-no):not(.c-type):not(.c-bm):not(.o-col) { display: none; }
+  table.grid:not(.compact) tr.open td:not(.c-chk):not(.c-no):not(.c-type):not(.c-bm):not(.o-col) { display: block; }
+  table.grid:not(.compact) td.o-col { display: none; }
+  table.grid:not(.compact) tr.open td.o-col {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  table.grid:not(.compact) tr.open td.o-col::before { margin-top: 0; }
+  table.grid:not(.compact) tr.open td input[type="text"] { width: 100% !important; max-width: none !important; min-width: 0 !important; }
+
+  table.grid td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  table.grid td.obs { max-width: none; }
+
+  .row-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 44px;
+    top: 8px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--line2);
+    background: #fff;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    transition: transform .15s;
+    z-index: 1;
+    padding: 0;
+  }
+  tr.open .row-toggle { transform: rotate(90deg); border-color: var(--brand2); color: var(--brand); }
 }
 </style>
 </head>
@@ -1111,23 +1238,23 @@ window.TYPE_TR = {
       const oils = it.o || {};
       return `
       <tr data-row="${esc(eq.id)}" class="${it.v ? 'visited' : ''}">
-        <td class="c-chk"><input type="checkbox" class="cb big" data-f="v" data-id="${esc(eq.id)}" ${it.v ? 'checked' : ''}></td>
-        <td class="c-no" title="${esc(eq.n)}">${esc(eq.n)}</td>
+        <td class="c-chk" title="${esc(t('visited'))}"><input type="checkbox" class="cb big" data-f="v" data-id="${esc(eq.id)}" ${it.v ? 'checked' : ''}></td>
+        <td class="c-no" title="${esc(eq.n)}"><button class="row-toggle" data-act="toggle-row" data-id="${esc(eq.id)}" aria-label="${esc(t('observation'))}">›</button>${esc(eq.n)}</td>
         <td class="c-type" title="${esc(eq.t)}">${esc(tType(eq.t))}<small>${esc(eq.s || '')}</small></td>
         <td class="c-bm" title="${esc((eq.b || '') + ' ' + (eq.m || ''))}"><b>${esc(eq.b || '—')}</b><small>${esc(eq.m || '')}</small></td>
-        <td><input type="text" data-f="h" data-id="${esc(eq.id)}" value="${esc(it.h)}" placeholder="${esc(t('hours'))}" style="width:86px"></td>
-        <td><input type="text" data-f="loc" data-id="${esc(eq.id)}" value="${esc(it.loc)}" placeholder="${esc(t('locationPh'))}" style="min-width:110px"></td>
-        <td class="o-col"><input type="checkbox" class="cb" data-f="g" data-id="${esc(eq.id)}" ${it.g ? 'checked' : ''}></td>
-        <td class="o-col"><input type="checkbox" class="cb" data-f="af" data-id="${esc(eq.id)}" ${it.af ? 'checked' : ''}></td>
+        <td data-label="${esc(t('hours'))}"><input type="text" data-f="h" data-id="${esc(eq.id)}" value="${esc(it.h)}" placeholder="${esc(t('hours'))}" style="width:86px"></td>
+        <td data-label="${esc(t('location'))}"><input type="text" data-f="loc" data-id="${esc(eq.id)}" value="${esc(it.loc)}" placeholder="${esc(t('locationPh'))}" style="min-width:110px"></td>
+        <td class="o-col" data-label="${esc(t('greasing'))}"><input type="checkbox" class="cb" data-f="g" data-id="${esc(eq.id)}" ${it.g ? 'checked' : ''}></td>
+        <td class="o-col" data-label="${esc(t('airFilter'))}"><input type="checkbox" class="cb" data-f="af" data-id="${esc(eq.id)}" ${it.af ? 'checked' : ''}></td>
         ${OILS.map(o => {
           const ov = oils[o];
           const qty = (ov && typeof ov === 'object') ? (ov.q || '') : '';
-          return `<td class="o-col"><span class="oil-cell">
+          return `<td class="o-col" data-label="${esc(o)}"><span class="oil-cell">
             <input type="checkbox" class="cb" data-f="oil" data-oil="${esc(o)}" data-id="${esc(eq.id)}" ${ov ? 'checked' : ''}>
             <input type="number" class="oil-qty" data-f="oilq" data-oil="${esc(o)}" data-id="${esc(eq.id)}" value="${esc(qty)}" min="0" step="0.5" placeholder="${esc(t('oilQtyShort'))}" title="${esc(o)} — ${esc(t('oilQtyTitle'))}">
           </span></td>`;
         }).join('')}
-        <td class="obs"><input type="text" data-f="ob" data-id="${esc(eq.id)}" value="${esc(it.ob)}" placeholder="${esc(t('observationPh'))}"></td>
+        <td class="obs" data-label="${esc(t('observation'))}"><input type="text" data-f="ob" data-id="${esc(eq.id)}" value="${esc(it.ob)}" placeholder="${esc(t('observationPh'))}"></td>
       </tr>`;
     }).join('');
 
@@ -1331,14 +1458,14 @@ window.TYPE_TR = {
         const it = r.items[id];
         const eq = eqById(id);
         return `<tr>
-          <td style="font-weight:700">${esc(id)}</td>
-          <td>${esc(eq ? tType(eq.t) : '')}</td>
-          <td>${esc(it.h || '—')}</td>
-          <td>${esc(it.loc || '—')}</td>
-          <td class="num">${it.g ? '✔' : ''}</td>
-          <td class="num">${it.af ? '✔' : ''}</td>
-          <td>${itemDoneChips(it)}</td>
-          <td>${esc(it.ob || '')}</td>
+          <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(id)}</td>
+          <td data-label="${esc(t('type'))}">${esc(eq ? tType(eq.t) : '')}</td>
+          <td data-label="${esc(t('hours'))}">${esc(it.h || '—')}</td>
+          <td data-label="${esc(t('location'))}">${esc(it.loc || '—')}</td>
+          <td class="num" data-label="${esc(t('greasing'))}">${it.g ? '✔' : ''}</td>
+          <td class="num" data-label="${esc(t('airFilter'))}">${it.af ? '✔' : ''}</td>
+          <td data-label="${esc(t('detailsDone'))}">${itemDoneChips(it)}</td>
+          <td data-label="${esc(t('observation'))}">${esc(it.ob || '')}</td>
         </tr>`;
       }).join('');
       return `
@@ -1387,13 +1514,13 @@ window.TYPE_TR = {
         }
       }
       return `<tr>
-        <td style="font-weight:700">${esc(eq.n)}</td>
-        <td title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
-        <td>${statusChip(s)}</td>
-        <td>${s.last ? esc(fmtDate(s.last)) + ` <span class="hint">(${esc(fmtDaysAgo(s.missed))})</span>` : '—'}</td>
-        <td><div class="tag-row">${detail}</div></td>
-        <td>${esc(ob || '—')}</td>
-        <td>${esc(att || '—')}</td>
+        <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(eq.n)}</td>
+        <td data-label="${esc(t('type'))}" title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
+        <td data-label="${esc(t('durum'))}">${statusChip(s)}</td>
+        <td data-label="${esc(t('sonBakim'))}">${s.last ? esc(fmtDate(s.last)) + ` <span class="hint">(${esc(fmtDaysAgo(s.missed))})</span>` : '—'}</td>
+        <td data-label="${esc(t('detailsDone'))}"><div class="tag-row">${detail}</div></td>
+        <td data-label="${esc(t('observation'))}">${esc(ob || '—')}</td>
+        <td data-label="${esc(t('attender'))}">${esc(att || '—')}</td>
       </tr>`;
     }).join('');
 
@@ -1459,13 +1586,13 @@ window.TYPE_TR = {
     const rows = list.map(eq => {
       const s = st.byEq[eq.id];
       return `<tr>
-        <td style="font-weight:700">${esc(eq.n)}</td>
-        <td title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
-        <td>${esc(eq.b || '—')}</td>
-        <td>${esc(eq.m || '—')}</td>
-        <td class="hint">${esc(eq.s || '—')}</td>
-        <td>${statusChip(s)}</td>
-        <td>${s.last ? esc(fmtDate(s.last)) : '—'}</td>
+        <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(eq.n)}</td>
+        <td data-label="${esc(t('type'))}" title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
+        <td data-label="${esc(t('brand'))}">${esc(eq.b || '—')}</td>
+        <td data-label="${esc(t('model'))}">${esc(eq.m || '—')}</td>
+        <td data-label="${esc(t('spec'))}" class="hint">${esc(eq.s || '—')}</td>
+        <td data-label="${esc(t('durum'))}">${statusChip(s)}</td>
+        <td data-label="${esc(t('sonBakim'))}">${s.last ? esc(fmtDate(s.last)) : '—'}</td>
         <td class="num"><button class="btn sm ghost-danger" data-act="del-eq" data-no="${esc(eq.n)}">🗑 ${esc(t('del'))}</button></td>
       </tr>`;
     }).join('');
@@ -1803,6 +1930,12 @@ window.TYPE_TR = {
         ui.alertsExpanded = !ui.alertsExpanded;
         updateTodayStats();
         break;
+
+      case 'toggle-row': {
+        const tr = el.closest('tr');
+        if (tr) tr.classList.toggle('open');
+        break;
+      }
 
       case 'export-csv': exportCsv(); break;
       case 'backup': backupJson(); break;
