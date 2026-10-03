@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Günlük Bakım Takibi</title>
+<meta name="description" content="On Field Daily Maintenance Report — günlük bakım takibi, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
+<style>
+/* ============================================================
+   Günlük Bakım — Daily Maintenance Tracker
+   ============================================================ */
+:root {
+  --bg: #f2f4f8;
+  --panel: #ffffff;
+  --ink: #16202e;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --line2: #cbd5e1;
+  --brand: #1d4ed8;
+  --brand2: #3b82f6;
+  --brand-ink: #ffffff;
+  --ok: #16a34a;
+  --ok-bg: #dcfce7;
+  --warn: #d97706;
+  --warn-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --neutral-bg: #eef2f7;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 16px rgba(15, 23, 42, .06);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 700; }
+button { font: inherit; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 10px 18px;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  box-shadow: 0 2px 10px rgba(2, 6, 23, .35);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .logo {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  background: var(--brand2);
+  font-size: 20px;
+}
+.brand h1 { font-size: 16px; letter-spacing: .2px; }
+.brand small { display: block; color: #94a3b8; font-size: 11px; font-weight: 400; }
+
+.nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.nav button {
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  padding: 8px 13px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.nav button:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.nav button.active { background: var(--brand); color: #fff; }
+.nav .badge {
+  background: var(--danger);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.lang-switch {
+  display: flex;
+  background: rgba(255, 255, 255, .1);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .5px;
+}
+.lang-switch button.active { background: #fff; color: #0f172a; }
+
+/* ---------- Layout ---------- */
+main { padding: 18px; max-width: 1700px; margin: 0 auto; }
+.page-title { font-size: 20px; margin-bottom: 4px; }
+.page-sub { color: var(--muted); margin: 0 0 16px; font-size: 13px; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.card h2 { font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card h2 .count { color: var(--muted); font-weight: 600; font-size: 13px; }
+
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.grow { flex: 1 1 220px; }
+.spacer { flex: 1 1 auto; }
+
+/* ---------- KPI ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi .k-label { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.kpi .k-value { font-size: 26px; font-weight: 800; margin-top: 2px; }
+.kpi .k-note { color: var(--muted); font-size: 12px; }
+.kpi.ok { border-left: 4px solid var(--ok); }
+.kpi.warn { border-left: 4px solid var(--warn); }
+.kpi.danger { border-left: 4px solid var(--danger); }
+.kpi.info { border-left: 4px solid var(--brand2); }
+.kpi.danger .k-value { color: var(--danger); }
+.kpi.ok .k-value { color: var(--ok); }
+
+/* progress */
+.progress { height: 8px; background: var(--neutral-bg); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand2), var(--ok)); transition: width .25s; }
+
+/* ---------- Fields ---------- */
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.input, select.input, textarea.input {
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  outline: none;
+  min-width: 0;
+}
+.input:focus { border-color: var(--brand2); box-shadow: 0 0 0 3px rgba(59, 130, 246, .18); }
+textarea.input { resize: vertical; min-height: 60px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: 1px solid var(--line2);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.btn:hover { background: #f8fafc; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { background: #1e40af; }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn.danger:hover { background: #b91c1c; }
+.btn.ghost-danger { color: var(--danger); border-color: #fca5a5; background: #fff; }
+.btn.ghost-danger:hover { background: var(--danger-bg); }
+.btn.sm { padding: 5px 10px; font-size: 12.5px; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.danger { background: var(--danger-bg); color: var(--danger); }
+.chip.neutral { background: var(--neutral-bg); color: var(--muted); }
+.chip.oil { background: #e0f2fe; color: #0369a1; font-weight: 600; }
+
+.saved-note { color: var(--ok); font-size: 12.5px; font-weight: 600; opacity: 0; transition: opacity .3s; }
+.saved-note.show { opacity: 1; }
+
+/* ---------- Alerts ---------- */
+.alerts { border-color: #fca5a5; background: #fff7f7; }
+.alerts h2 { color: var(--danger); }
+.alert-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; }
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.alert-item:hover { border-color: var(--danger); background: var(--danger-bg); }
+.alert-item .a-no { font-weight: 800; color: var(--danger); min-width: 86px; }
+.alert-item .a-type { color: var(--muted); font-size: 12.5px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alert-item .a-days { font-weight: 700; font-size: 12px; color: var(--danger); white-space: nowrap; }
+.alert-item .a-last { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+
+/* ---------- Table ---------- */
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  max-height: 72vh;
+}
+table.grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1950px; }
+table.grid th, table.grid td {
+  border-bottom: 1px solid var(--line);
+  padding: 7px 8px;
+  vertical-align: middle;
+  background: #fff;
+}
+table.grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f8fafc;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  color: #475569;
+  text-align: left;
+  border-bottom: 2px solid var(--line2);
+  white-space: nowrap;
+}
+table.grid tbody tr:hover td { background: #f8fbff; }
+table.grid tbody tr.visited td { background: #f6fef9; }
+table.grid tbody tr.visited:hover td { background: #effdf5; }
+table.grid td.num, table.grid th.num { text-align: center; }
+
+/* sticky identity columns (chk / no / type / brand) */
+table.grid .c-chk { position: sticky; left: 0; z-index: 2; width: 40px; min-width: 40px; text-align: center; }
+table.grid .c-no  { position: sticky; left: 40px; z-index: 2; min-width: 108px; max-width: 108px; font-weight: 700; }
+table.grid .c-type{ position: sticky; left: 148px; z-index: 2; min-width: 175px; max-width: 175px; border-right: 1px solid var(--line); }
+table.grid .c-bm  { position: sticky; left: 323px; z-index: 2; min-width: 190px; max-width: 190px; border-right: 1px solid var(--line); }
+table.grid thead .c-chk, table.grid thead .c-no, table.grid thead .c-type, table.grid thead .c-bm { z-index: 4; background: #f8fafc; }
+table.grid .c-type small, table.grid .c-bm small { display: block; color: var(--muted); font-weight: 400; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.grid .c-bm b { display: block; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+table.grid .o-col { min-width: 94px; width: 94px; text-align: center; }
+
+/* yağ hücresi: kutucuk + litre girişi */
+.oil-cell { display: inline-flex; align-items: center; gap: 4px; justify-content: center; }
+.oil-qty {
+  width: 48px;
+  padding: 3px 4px;
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  background: #fff;
+  -moz-appearance: textfield;
+}
+.oil-qty::-webkit-outer-spin-button, .oil-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.oil-qty:hover { border-color: var(--brand2); }
+.oil-qty:focus { border-color: var(--brand2); outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, .18); }
+.oil-qty:disabled { background: var(--neutral-bg); cursor: not-allowed; }
+.oil-qty::placeholder { color: var(--muted); opacity: .7; }
+table.grid .obs { min-width: 200px; max-width: 280px; }
+table.grid .obs input { width: 100%; }
+table.grid input[type="text"] { border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 5px 6px; width: 100%; }
+table.grid input[type="text"]:hover { border-color: var(--line2); }
+table.grid input[type="text"]:focus { border-color: var(--brand2); background: #fff; outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, .15); }
+
+table.grid.compact { min-width: 980px; }
+table.grid.compact th, table.grid.compact td { padding: 6px 8px; }
+
+/* checkbox */
+.cb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border: 2px solid var(--line2);
+  border-radius: 5px;
+  background: #fff;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+  transition: .12s;
+}
+.cb:checked { background: var(--ok); border-color: var(--ok); }
+.cb:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px; top: 1px;
+  width: 5px; height: 10px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.cb.big { width: 22px; height: 22px; }
+.cb:disabled { opacity: .4; }
+
+/* ---------- Toolbar ---------- */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+.toolbar .field { min-width: 130px; max-width: 320px; }
+.toolbar .field .input { max-width: 100%; }
+.toolbar .field select.input { width: 220px; }
+.toolbar .check-inline { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--muted); padding-bottom: 7px; }
+
+.date-nav { display: flex; align-items: center; gap: 6px; }
+.date-nav .btn { padding: 7px 10px; }
+
+/* ---------- History ---------- */
+.day-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; margin-bottom: 10px; overflow: hidden; }
+.day-card summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.day-card summary::-webkit-details-marker { display: none; }
+.day-card summary:hover { background: #f8fafc; }
+.day-card .d-date { font-weight: 800; min-width: 110px; }
+.day-card .d-meta { color: var(--muted); font-size: 12.5px; }
+.day-card .d-caret { margin-left: auto; color: var(--muted); transition: transform .15s; }
+.day-card[open] .d-caret { transform: rotate(90deg); }
+.day-card .d-body { border-top: 1px solid var(--line); padding: 0; overflow-x: auto; }
+.day-card .d-body table { min-width: 900px; }
+
+.chart { display: flex; align-items: flex-end; gap: 5px; height: 130px; padding-top: 8px; }
+.chart .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; height: 100%; }
+.chart .bar i {
+  display: block;
+  width: 100%;
+  max-width: 34px;
+  background: linear-gradient(180deg, var(--brand2), var(--brand));
+  border-radius: 5px 5px 0 0;
+  min-height: 3px;
+  transition: height .3s;
+}
+.chart .bar.zero i { background: var(--line); }
+.chart .bar b { font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.chart .bar span { font-size: 11px; font-weight: 700; color: #334155; }
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 18px;
+}
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, .4);
+  overflow: hidden;
+  animation: pop .15s ease-out;
+}
+@keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal .m-head { padding: 16px 18px; border-bottom: 1px solid var(--line); font-weight: 800; font-size: 15px; }
+.modal .m-body { padding: 16px 18px; display: grid; gap: 12px; }
+.modal .m-foot { padding: 14px 18px; background: #f8fafc; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; }
+.modal .err { color: var(--danger); font-size: 12.5px; font-weight: 600; min-height: 16px; }
+.modal p { margin: 0; color: #334155; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%) translateY(20px);
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: .25s;
+  z-index: 200;
+  box-shadow: 0 8px 30px rgba(2, 6, 23, .4);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: #14532d; }
+.toast.err { background: #7f1d1d; }
+
+/* ---------- Empty ---------- */
+.empty { text-align: center; color: var(--muted); padding: 34px 16px; }
+.empty .big { font-size: 34px; display: block; margin-bottom: 6px; }
+
+.hint { color: var(--muted); font-size: 12.5px; }
+.sep { height: 1px; background: var(--line); margin: 14px 0; }
+
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
+.set-row:last-child { border-bottom: 0; }
+.set-row .s-label { font-weight: 700; }
+.set-row .s-desc { color: var(--muted); font-size: 12.5px; max-width: 640px; }
+
+.tag-row { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  main { padding: 12px; }
+  .topbar { padding: 10px 12px; gap: 10px; }
+  .top-actions { margin-left: 0; width: 100%; justify-content: space-between; }
+  .kpi .k-value { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🔧</span>
+    <div>
+      <h1 id="brandTitle">Günlük Bakım Takibi</h1>
+      <small id="brandSub">On Field Daily Maintenance Report</small>
+    </div>
+  </div>
+  <nav class="nav" id="nav"></nav>
+  <div class="top-actions">
+    <div class="lang-switch" id="langSwitch"></div>
+  </div>
+</header>
+
+<main id="main"></main>
+<div id="toast" class="toast"></div>
+
+<script>
+// daily maintenance.xlsx icinden uretilen ekipman listesi
+// 533 ekipman, 54 tur
+window.EQUIPMENT_SEED = [{"n":"W-EX-006","t":"WHEEL EXCAVATOR","b":"ZOOMLION","m":"ZE150WG","s":"15 t"},{"n":"AD-002","t":"ASPALT DISTRIBUTOR","b":"OKUR","m":"AD-12","s":"n/a"},{"n":"ASP-001","t":"ASPHALT PLANT","b":"SBECHAR INFRATECH","m":"DM-60 ASPHALT PLANT","s":"90 TPH - 120 TPH"},{"n":"ASP-002","t":"ASPHALT PLANT","b":"ATLAS INDUSTRIES","m":"DM-60 ASPHALT PLANT","s":"90 TPH - 120 TPH"},{"n":"W-EX-007","t":"WHEEL EXCAVATOR","b":"ZOOMLION","m":"ZE150WG","s":"15 t"},{"n":"W-EX-008","t":"WHEEL EXCAVATOR","b":"ZOOMLION","m":"ZE150WG","s":"15 t"},{"n":"W-EX-009","t":"WHEEL EXCAVATOR","b":"ZOOMLION","m":"ZE150WG","s":"15 t"},{"n":"AD-001","t":"ASPALT DISTRIBUTOR","b":"OKUR","m":"AD-12","s":"n/a"},{"n":"ASP-003","t":"ASPHALT PLANT","b":"ATLAS INDUSTRIES","m":"DM-60 ASPHALT PLANT","s":"90 TPH - 120 TPH"},{"n":"ASP-004","t":"ASPHALT PLANT","b":"ATLAS INDUSTRIES","m":"MDDM90","s":"180 TPH - 200 TPH"},{"n":"BD-001","t":"BULLDOZER","b":"CATERPILLAR","m":"D8R","s":"35–38 t"},{"n":"BD-003","t":"BULLDOZER","b":"CATERPILLAR","m":"D8R","s":"35–38 t"},{"n":"BD-004","t":"BULLDOZER","b":"KOMATSU","m":"D85EX-15R","s":"28–30 t"},{"n":"BD-005","t":"BULLDOZER","b":"KOMATSU","m":"D65EX-16","s":"20–22 t"},{"n":"BD-006","t":"BULLDOZER","b":"KOMATSU","m":"D85EX-15R","s":"28–30 t"},{"n":"BD-007","t":"BULLDOZER","b":"CATERPILLAR","m":"D8R","s":"35–40 t"},{"n":"BD-012","t":"BULLDOZER","b":"ZOOMLION","m":"ZD260G","s":"24–26 t"},{"n":"BD-013","t":"BULLDOZER","b":"ZOOMLION","m":"ZD260G","s":"24–26 t"},{"n":"BD-002","t":"BULLDOZER","b":"CATERPILLAR","m":"D8R","s":"35–38 t"},{"n":"BL-005","t":"BACKHOE LOADER","b":"CUKUROVA","m":"KROOF","s":"8–9 t"},{"n":"BL-008","t":"BACKHOE LOADER","b":"BOBCAT","m":"BHL730","s":"8.0–8.5 t"},{"n":"BL-011","t":"BACKHOE LOADER","b":"HYUNDAI","m":"H930-S","s":"8.2–8.8 t"},{"n":"BD-008","t":"BULLDOZER","b":"CATERPILLAR","m":"D8R","s":"35–40 t"},{"n":"BL-013","t":"BACKHOE LOADER","b":"HYUNDAI","m":"H930-S","s":"8.2–8.8 t"},{"n":"BD-009","t":"BULLDOZER","b":"CATERPILLAR","m":"D6R2 XL","s":"22–24 t"},{"n":"BD-010","t":"BULLDOZER","b":"CATERPILLAR","m":"D6R2 XL","s":"22–24 t"},{"n":"BD-011","t":"BULLDOZER","b":"CATERPILLAR","m":"D6R2 XL","s":"22–24 t"},{"n":"BL-012","t":"BACKHOE LOADER","b":"HYUNDAI","m":"H930-S","s":"8.2–8.8 t"},{"n":"BL-014","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BL-015","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BL-016","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BL-017","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BT-007","t":"BOOM TRUCK","b":"MERCEDES","m":"AXOR-3340","s":"30 t"},{"n":"BL-018","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BL-019","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BT-011","t":"BOOM TRUCK","b":"MERCEDES","m":"AXOR-3340","s":"30 t"},{"n":"CMT-001","t":"CONCRETE MIXER","b":"RENAULT","m":"KERAX 380 DXI","s":"8 m³"},{"n":"BL-020","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"BL-021","t":"BACKHOE LOADER","b":"JCB","m":"3DX PLUS","s":"1.0 m³-1.1 m³"},{"n":"CMT-004","t":"CONCRETE MIXER","b":"HOWO","m":"ZZ1257N3847B1","s":"10 m³"},{"n":"BT-008","t":"BOOM TRUCK","b":"MERCEDES","m":"AXOR-3340","s":"30 t"},{"n":"CMT-006","t":"CONCRETE MIXER","b":"HOWO","m":"ZZ1257N3847B1","s":"10 m³"},{"n":"BT-010","t":"BOOM TRUCK","b":"MERCEDES","m":"AXOR-3340","s":"30 t"},{"n":"CMT-003","t":"CONCRETE MIXER","b":"RENAULT","m":"KERAX 380 DXI","s":"8 m³"},{"n":"CMT-009","t":"CONCRETE MIXER","b":"ZOOMLION","m":"10JBH-R","s":"10 m³"},{"n":"CMT-03","t":"CONCRETE MIXER","b":"DAVINO","m":"MASTER 440.2","s":"2 m³"},{"n":"CMT-005","t":"CONCRETE MIXER","b":"HOWO","m":"ZZ1257N3847B1","s":"10 m³"},{"n":"CMT-007","t":"CONCRETE MIXER","b":"HOWO","m":"ZZ1257N3847B1","s":"10 m³"},{"n":"CRD-002","t":"HYDRAULIC CRAWLER DRILL","b":"SOOSAN","m":"JD-800","s":"n/a"},{"n":"CMT-008","t":"CONCRETE MIXER","b":"ZOOMLION","m":"10JBH-R","s":"10 m³"},{"n":"CMT-010","t":"CONCRETE MIXER","b":"ZOOMLION","m":"10JBH-R","s":"10 m³"},{"n":"CMT-011","t":"CONCRETE MIXER","b":"ZOOMLION","m":"10JBH-R","s":"10 m³"},{"n":"DDC-004","t":"DOUBLE DRUM ROLLER COMPACTOR","b":"AMMANN","m":"ARX23","s":"3 t"},{"n":"CRD-001","t":"HYDRAULIC CRAWLER DRILL","b":"SOOSAN","m":"JD-800","s":"n/a"},{"n":"CRD-003","t":"HYDRAULIC CRAWLER DRILL","b":"SOOSAN","m":"JD-800","s":"n/a"},{"n":"CRD-004","t":"HYDRAULIC CRAWLER DRILL","b":"SOOSAN","m":"JD-800","s":"n/a"},{"n":"DDC-003","t":"DOUBLE DRUM ROLLER COMPACTOR","b":"AMMANN","m":"ARX23","s":"3 t"},{"n":"DDC-005","t":"TANDEM ROLLER","b":"JCB","m":"VMT300","s":"2.6 t"},{"n":"DDC-006","t":"TANDEM ROLLER","b":"JCB","m":"VMT300","s":"2.6 t"},{"n":"DDC-007","t":"TANDEM ROLLER","b":"JCB","m":"VMT300","s":"2.6 t"},{"n":"DDC-008","t":"TANDEM ROLLER","b":"JCB","m":"VMT300","s":"2.6 t"},{"n":"EX-123","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-124","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-141","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-142","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-144","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-145","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-146","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-150","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"330 D2L","s":"30 t"},{"n":"EX-151","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"330 D2L","s":"30 t"},{"n":"EX-153","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"330 D2L","s":"30 t"},{"n":"EX-164","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC400-8","s":"40 t"},{"n":"EX-170","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC500LC-8","s":"50 t"},{"n":"EX-173","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC500LC-8","s":"50 t"},{"n":"EX-180","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC390-LC","s":"40 t"},{"n":"EX-182","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC390-LC","s":"40 t"},{"n":"EX-200","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC220D","s":"20 t"},{"n":"EX-201","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC220D","s":"20 t"},{"n":"EX-202","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC220D","s":"20 t"},{"n":"EX-203","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC220D","s":"20 t"},{"n":"EX-210","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-211","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-212","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-213","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-214","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-302","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-120","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-121","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-122","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-125","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC220-8","s":"20 t"},{"n":"EX-130","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"320 D2L","s":"30 t"},{"n":"EX-131","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"320 D2L","s":"30 t"},{"n":"EX-132","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"320 D2L","s":"30 t"},{"n":"EX-140","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-143","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC300-8","s":"30 t"},{"n":"EX-152","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"330 D2L","s":"30 t"},{"n":"EX-154","t":"CRAWLER EXCAVATOR","b":"CATERPILLAR","m":"330 D2L","s":"30 t"},{"n":"EX-171","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC500LC-8R","s":"50 t"},{"n":"EX-172","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC500LC-8","s":"50 t"},{"n":"EX-181","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC390-LC","s":"40 t"},{"n":"EX-183","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC390-LC","s":"40 t"},{"n":"EX-184","t":"CRAWLER EXCAVATOR","b":"KOMATSU","m":"PC390-LC","s":"40 t"},{"n":"EX-204","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC220D","s":"20 t"},{"n":"EX-215","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-216","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-217","t":"CRAWLER EXCAVATOR","b":"ZOOMLION","m":"ZE215G","s":"20 t"},{"n":"EX-307","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-308","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-312","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"W-EX-003","t":"WHEEL EXCAVATOR","b":"HYUNDAI","m":"ROBEX 200 W-7","s":"21 t"},{"n":"EX-218","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-219","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-220","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-221","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-222","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"FS-001","t":"ASPHALT PAVER / FINISHER","b":"VOGELE","m":"1900-3","s":"700–900 t/h"},{"n":"EX-223","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"FS-003","t":"ASPHALT PAVER / FINISHER","b":"VOGELE","m":"SUPER 1800","s":"600–700 t/h"},{"n":"EX-224","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-225","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"EX-226","t":"CRAWLER EXCAVATOR","b":"SANY","m":"SY215-C","s":"20 t"},{"n":"FS-002","t":"ASPHALT PAVER / FINISHER","b":"VOGELE","m":"1900-3","s":"700–900 t/h"},{"n":"FT-003","t":"MEDIUM DUTY VEHICLE / FUEL DISPENSER TRUCK - BECAME TYRE TRUCK","b":"FAW","m":"CA498E3-12","s":"n/a"},{"n":"FS-004","t":"ASPHALT PAVER / FINISHER","b":"ATLAS COPCO","m":"DYNAPAC","s":"n/a"},{"n":"FS-005","t":"ASPHALT PAVER / FINISHER","b":"SANY","m":"SAP90C-10S","s":"n/a"},{"n":"FT-006","t":"FUEL DISPENSER TRUCK","b":"SHACMAN","m":"n/a","s":"10 T"},{"n":"FT-007","t":"FUEL DISPENSER TRUCK","b":"SHACMAN","m":"n/a","s":"10 T"},{"n":"FS-006","t":"ASPHALT PAVER / FINISHER","b":"SANY","m":"SAP90C-10S","s":"n/a"},{"n":"FT-001","t":"FUEL DISPENSER TRUCK","b":"EICHER","m":"PRO 1075","s":"n/a"},{"n":"FT-004","t":"FUEL DISPENSER TRUCK","b":"SHACMAN","m":"n/a","s":"10 T"},{"n":"FT-005","t":"FUEL DISPENSER TRUCK","b":"SHACMAN","m":"n/a","s":"10 T"},{"n":"FT-008","t":"FUEL DISPENSER TRUCK","b":"SHACMAN","m":"n/a","s":"20 T"},{"n":"GR-002","t":"GRADER","b":"VOLVO","m":"G940","s":"15.5–17 t"},{"n":"GR-005","t":"GRADER","b":"CATERPILLAR","m":"14M","s":"24–26 t"},{"n":"GR-001","t":"GRADER","b":"VOLVO","m":"G940","s":"15.5–17 t"},{"n":"GR-008","t":"GRADER","b":"CATERPILLAR","m":"160M","s":"19–21 t"},{"n":"GR-003","t":"GRADER","b":"CATERPILLAR","m":"14M","s":"24–26 t"},{"n":"GR-006","t":"GRADER","b":"VOLVO","m":"G990","s":"19–21 t"},{"n":"GR-009","t":"GRADER","b":"VOLVO","m":"G990","s":"19–21 t"},{"n":"GR-013","t":"GRADER","b":"SANY","m":"STG230C-10S","s":"18–19 t"},{"n":"GR-007","t":"GRADER","b":"CATERPILLAR","m":"160M","s":"19–21 t"},{"n":"GR-011","t":"GRADER","b":"VOLVO","m":"G990","s":"19–21 t"},{"n":"GR-004","t":"GRADER","b":"CATERPILLAR","m":"14M","s":"24–26 t"},{"n":"GR-012","t":"GRADER","b":"SANY","m":"STG230C-10S","s":"18–19 t"},{"n":"GR-014","t":"GRADER","b":"SANY","m":"STG230C-10S","s":"18–19 t"},{"n":"GR-015","t":"GRADER","b":"SANY","m":"STG230C-10S","s":"18–19 t"},{"n":"IWTB-008","t":"PRIME COAT TRAILER","b":"WM","m":"n/a","s":"n/a"},{"n":"IWTB-010","t":"WATER TANKER TRAILER","b":"WM","m":"n/a","s":"n/a"},{"n":"GR-016","t":"GRADER","b":"SANY","m":"STG190C-10S","s":"18–19 t"},{"n":"GR-017","t":"GRADER","b":"SANY","m":"STG190C-10S","s":"18–19 t"},{"n":"GR-018","t":"GRADER","b":"SANY","m":"STG190C-10S","s":"18–19 t"},{"n":"GR-019","t":"GRADER","b":"SANY","m":"STG230C-10S","s":"18–19 t"},{"n":"MC-002","t":"MOBILE CRUSHER","b":"METSO","m":"LT1213","s":"300–500 t/h"},{"n":"MCR-001","t":"MOBILE CRANE","b":"SANY","m":"STC250","s":"25 t"},{"n":"MC-005","t":"MOBILE CRUSHER","b":"METSO","m":"LT1213","s":"300–500 t/h"},{"n":"MC-003","t":"MOBILE CRUSHER","b":"METSO","m":"LT1213","s":"300–500 t/h"},{"n":"MC-006","t":"MOBILE CRUSHER","b":"METSO","m":"LT1213","s":"300–500 t/h"},{"n":"MC-007","t":"MOBILE CRUSHER","b":"METSO","m":"LT1213","s":"300–500 t/h"},{"n":"FT-001","t":"MAINTENANCE TRUCK","b":"MERCEDES","m":"1518","s":"n/a"},{"n":"MC-009 - VSI-001","t":"VERTICAL SHAFT IMPACT CRUSHER","b":"METSO BARMAC","m":"B9600 MKII","s":"250–400 t/h"},{"n":"FT-003","t":"MAINTENANCE TRUCK","b":"FORD","m":"1833","s":"n/a"},{"n":"MC-010 - VSI-002","t":"VERTICAL SHAFT IMPACT CRUSHER","b":"BHS SONTHOFEN","m":"RSMX 1222","s":"200–350 t/h"},{"n":"MCR-007","t":"MOBILE CRANE","b":"SANY","m":"STC1000","s":"100 t"},{"n":"PS-003","t":"POWER SCREEN","b":"METSO","m":"ST2.8","s":"n/a"},{"n":"PS-004","t":"POWER SCREEN","b":"METSO","m":"ST4.8","s":"n/a"},{"n":"ML-003","t":"SKID STEER LOADER","b":"CATERPILLAR","m":"216B","s":"n/a"},{"n":"PTR-002","t":"PNEUMATIC ROLLER COMPACTOR","b":"HAMM","m":"GRW280","s":"n/a"},{"n":"PTR-003","t":"PNEUMATIC ROLLER COMPACTOR","b":"HAMM","m":"GRW-18","s":"n/a"},{"n":"FT-002","t":"MAINTENANCE TRUCK","b":"FORD","m":"1833","s":"n/a"},{"n":"PTR-005","t":"PNEUMATIC ROLLER COMPACTOR","b":"SANY","m":"SPR200C-8","s":"n/a"},{"n":"PS-001","t":"POWER SCREEN","b":"FINTEC","m":"542","s":"n/a"},{"n":"PS-002","t":"POWER SCREEN","b":"MCCLOSKEY","m":"S130","s":"n/a"},{"n":"PTR-001","t":"PNEUMATIC ROLLER COMPACTOR","b":"HAMM","m":"GRW280","s":"n/a"},{"n":"RC-006","t":"ROLLER COMPACTOR","b":"HAMM","m":"3411","s":"12 t"},{"n":"RC-008","t":"ROLLER COMPACTOR","b":"AMMANN","m":"ASC100","s":"12 t"},{"n":"PTR-004","t":"PNEUMATIC ROLLER COMPACTOR","b":"SANY","m":"SPR200C-8","s":"n/a"},{"n":"RC-001","t":"ROLLER COMPACTOR","b":"CATERPILLAR","m":"CS76XT","s":"18 t"},{"n":"RC-012","t":"ROLLER COMPACTOR","b":"VOLVO","m":"SD115B","s":"12 t"},{"n":"RC-002","t":"ROLLER COMPACTOR","b":"HAMM","m":"3411","s":"12 t"},{"n":"RC-014","t":"ROLLER COMPACTOR","b":"AMMANN","m":"ASC100","s":"12 t"},{"n":"RC-015","t":"ROLLER COMPACTOR","b":"AMMANN","m":"ASC100","s":"12 t"},{"n":"RC-004","t":"ROLLER COMPACTOR","b":"HAMM","m":"3411","s":"12 t"},{"n":"RC-017","t":"ROLLER COMPACTOR","b":"AMMANN","m":"ASC100","s":"12 t"},{"n":"RC-018","t":"ROLLER COMPACTOR","b":"VOLVO","m":"SD115B","s":"12 t"},{"n":"RC-019","t":"ROLLER COMPACTOR","b":"VOLVO","m":"SD115B","s":"12 t"},{"n":"RC-010","t":"ROLLER COMPACTOR","b":"ATLAS COPCO","m":"DYNAPAC CA270","s":"12 t"},{"n":"RC-011","t":"ROLLER COMPACTOR","b":"ATLAS COPCP","m":"DYNAPAC CA6000","s":"18 t"},{"n":"RC-022","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-8H","s":"20 t"},{"n":"RC-023","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-8H","s":"20 t"},{"n":"RC-013","t":"ROLLER COMPACTOR","b":"ATLAS COPCO","m":"DYNAPAC CA6000","s":"18 t"},{"n":"RC-016","t":"ROLLER COMPACTOR","b":"AMMANN","m":"ASC100","s":"12 t"},{"n":"RC-020","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-10S","s":"20 t"},{"n":"RC-021","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-8H","s":"20 t"},{"n":"RC-024","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-10S","s":"20 t"},{"n":"RC-025","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-10S","s":"20 t"},{"n":"TL-006","t":"TELEHANDLER","b":"BOBCAT","m":"T40170","s":"n/a"},{"n":"TL-010","t":"TELEHANDLER","b":"HAULOTTE","m":"CT100","s":"n/a"},{"n":"TL-012","t":"TELEHANDLER","b":"BOBCAT","m":"T40180","s":"n/a"},{"n":"TRC-001","t":"TANDEM ROLLER","b":"BOMAG","m":"BW 161 AD-4","s":"10–11 t"},{"n":"TRC-002","t":"TANDEM ROLLER","b":"HAMM","m":"HD+ 140 VV","s":"13–14 t"},{"n":"RC-026","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-10S","s":"20 t"},{"n":"TRC-004","t":"TANDEM ROLLER","b":"BOMAG","m":"161W","s":"10–11 t"},{"n":"RC-027","t":"ROLLER COMPACTOR","b":"SANY","m":"SSR200AC-10S","s":"20 t"},{"n":"RCR-001","t":"ROAD COLD RECYCLE MACHINE","b":"XCMG","m":"XLZ2303S","s":"n/a"},{"n":"EX-300","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-301","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-306","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-310","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"EX-316","t":"CRAWLER EXCAVATOR","b":"VOLVO","m":"EC300DL","s":"30 t"},{"n":"W-EX-002","t":"WHEEL EXCAVATOR","b":"HYUNDAI","m":"ROBEX 200 W-7","s":"21 t"},{"n":"W-EX-004","t":"WHEEL EXCAVATOR","b":"CATERPILLAR","m":"M318D","s":"20 t"},{"n":"W-EX-005","t":"WHEEL EXCAVATOR","b":"HYUNDAI","m":"ROBEX 170W-9","s":"18 t"},{"n":"TL-003","t":"TELEHANDLER","b":"BOBCAT","m":"T40180","s":"n/a"},{"n":"TRC-003","t":"TANDEM ROLLER","b":"DYNAPAC","m":"CC424HF","s":"10–11 t"},{"n":"TRC-005","t":"TANDEM ROLLER","b":"BOMAG","m":"161W","s":"10–11 t"},{"n":"TRCT-001","t":"TRACTOR","b":"KEROTY","m":"K1654","s":"n/a"},{"n":"WL-201","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WL-202","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WL-203","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WL-215","t":"WHEEL LOADER","b":"HYUNDAI","m":"HL770-9S","s":"22–24 t - 4.0–4.5 m³"},{"n":"WL-217","t":"WHEEL LOADER","b":"HYUNDAI","m":"HL770-9S","s":"22–24 t - 4.0–4.5 m³"},{"n":"WL-204","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WL-206","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WL-218","t":"WHEEL LOADER","b":"HYUNDAI","m":"HL770-9S","s":"22–24 t - 4.0–4.5 m³"},{"n":"WL-219","t":"WHEEL LOADER","b":"HYUNDAI","m":"HL770-9S","s":"22–24 t - 4.0–4.5 m³"},{"n":"WL-221","t":"WHEEL LOADER","b":"HYUNDAI","m":"HL770-9S","s":"22–24 t - 4.0–4.5 m³"},{"n":"WL-208","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WT-016","t":"WATER TANKER","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"WL-209","t":"WHEEL LOADER","b":"DOOSAN","m":"DL420A","s":"23–25 t - 4.0–4.5 m³"},{"n":"WT-018","t":"WATER TANKER","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"WL-212","t":"WHEEL LOADER","b":"VOLVO","m":"L220","s":"34–36 t - 5.5–6.8 m³"},{"n":"WL-214","t":"WHEEL LOADER","b":"VOLVO","m":"L220","s":"34–36 t - 5.5–6.8 m³"},{"n":"WT-013","t":"WATER TANKER","b":"MERCEDES","m":"AXOR-3340","s":"n/a"},{"n":"WT-017","t":"WATER TANKER","b":"HOWO","m":"CNHTC-371","s":"17 t"},{"n":"WT-019","t":"WATER TANKER","b":"SHACHMAN","m":"L3000","s":"10 t"},{"n":"WT-020","t":"WATER TANKER","b":"SHACHMAN","m":"L3000","s":"10 t"},{"n":"WT-021","t":"WATER TANKER","b":"SHACHMAN","m":"F3000 / SX5255GSSDR434R","s":"10 t"},{"n":"WT-022","t":"WATER TANKER","b":"SHACHMAN","m":"F3000 / SX5255GSSDR434R","s":"20 t"},{"n":"WT-023","t":"WATER TANKER","b":"SHACMAN","m":"F3000 / SX5255GSSDR434R","s":"20 t"},{"n":"WT-024","t":"WATER TANKER","b":"SHACMAN","m":"F3000 / SX5255GSSDR434R","s":"20 t"},{"n":"WT-025","t":"WATER TANKER","b":"SHACMAN","m":"F3000 / SX5255GSSDR434R","s":"20 t"},{"n":"WT-026","t":"WATER TANKER","b":"SHACMAN","m":"F3000 / SX5255GSSDR434R","s":"20 t"},{"n":"DT-032","t":"HEAVY DUTY VEHICLE / AD-001 ASPALT DISTRIBUTOR","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"DT-043","t":"HEAVY DUTY VEHICLE / CSCV-002 COMBI SURFACE COATING VEHICLE","b":"TATA","m":"PRIMA","s":"n/a"},{"n":"CSCV-002","t":"COMBI SURFACE COATING VEHICLE","b":"OKUR","m":"KOMBINE","s":"n/a"},{"n":"DT-007","t":"DUMP TRUCK","b":"FORD","m":"4143D","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-013","t":"DUMP TRUCK","b":"FORD","m":"4143D","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-015","t":"DUMP TRUCK","b":"FORD","m":"4143D","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-016","t":"DUMP TRUCK","b":"FORD","m":"4143D","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-017","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-018","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-019","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-020","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-021","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-022","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-023","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-024","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-025","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-026","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-027","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-030","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-031","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-031P","t":"DUMP TRUCK","b":"DAF","m":"CFDAF85.410","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-033","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-037","t":"HEAVY DUTY VEHICLE / AD-002 ASPALT DISTRIBUTOR","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"DT-035","t":"DUMP TRUCK / REMOVABLE WATER TANKER","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-036","t":"FUEL TANKER","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-038","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-039","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-040","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-041","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"AVM-01","t":"AGGREGATE WASHING MACHINE","b":"OKUR","m":"22-00103-04-01","s":"n/a"},{"n":"DT-045","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-046","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-047","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-048","t":"DUMP TRUCK / REMOVABLE WATER TANKER","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-049","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-050","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-051","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-052","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-053","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-054","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-055","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-042","t":"HEAVY DUTY VEHICLE / CSCV-001 COMBI SURFACE COATING VEHICLE","b":"TATA","m":"PRIMA","s":"n/a"},{"n":"CSCV-001","t":"COMBI SURFACE COATING VEHICLE","b":"OKUR","m":"KOMBINE","s":"n/a"},{"n":"DT-034","t":"TRAILER HEAD","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-044","t":"DUMP TRUCK / EXPLOSIVE MATERIAL CARIER","b":"HOWO","m":"CNHTC-371","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-056","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-061","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-062","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-063","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-057","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-065","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-066","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-067","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-068","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-069","t":"DUMP TRUCK / REMOVABLE WATER TANKER","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-070","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-071","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-072","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-073","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-058","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-075","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-076","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-077","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-078","t":"DUMP TRUCK / REMOVABLE WATER TANKER","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-079","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-080","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-081","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-059","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-083","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-084","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-085","t":"DUMP TRUCK / EXPLOSIVE MATERIAL CARIER","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-060","t":"DUMP TRUCK","b":"MAN","m":"TGS 41.400","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-087","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-088","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-089","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-064","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-091","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-092","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-093","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-094","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-095","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-074","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-082","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-086","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-099","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-090","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-101","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-102","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-103","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-104","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-105","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-106","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-107","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-108","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-096","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-110","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-111","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-097","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-098","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-100","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-109","t":"DUMP TRUCK","b":"HOWO","m":"CNHTC-380","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-112","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-113","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-114","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-115","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-116","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-117","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-118","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-119","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-120","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-121","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-122","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-123","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-124","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-125","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3315DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-126","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-127","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-128","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-133","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-129","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-130","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-131","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-132","t":"DUMP TRUCK","b":"SANY","m":"SYME3250TH31C","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-134","t":"DUMP TRUCK","b":"SHACHMAN","m":"n/a","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-136","t":"DUMP TRUCK","b":"SANY","m":"SYZ320C-8S","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-137","t":"DUMP TRUCK","b":"SANY","m":"SYZ320C-8S","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-138","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-139","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-140","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-141","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-142","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-143","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-144","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-145","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-146","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-147","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-148","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-149","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-150","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-151","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-152","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-153","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-154","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-155","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-156","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-157","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-158","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-159","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-160","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-161","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-162","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-163","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-164","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-165","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-166","t":"DUMP TRUCK","b":"SHACHMAN","m":"F3000/SX3255DT384R","s":"6x4 - Three-axle dump truck (10-wheeler)"},{"n":"DT-167","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-168","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-169","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-170","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-171","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-172","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-173","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-174","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-175","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"DT-176","t":"DUMP TRUCK","b":"SHACMAN","m":"SX3155DU386R","s":"8x4 - Four-axle tipper (16 wheels / \"Kırkayak\")"},{"n":"FB-004","t":"TRAILER HEAD","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"FB-005","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FB-006","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FB-007","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FB-008","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FB-009","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FB-010","t":"TRAILER HEAD","b":"SHACHMAN","m":"SX4255HU324R","s":"n/a"},{"n":"FBB-004","t":"FLATBED-BOX","b":"TRAILER","m":"W.M","s":"n/a"},{"n":"FBB-005","t":"FLATBED-BOX","b":"YN HUALI","m":"DHL9400","s":"n/a"},{"n":"FBB-006","t":"FLATBED-BOX","b":"YN HUALI","m":"DHL9400","s":"n/a"},{"n":"FBB-007","t":"FLATBED-BOX","b":"YN HUALI","m":"DHL9400","s":"n/a"},{"n":"FBB-008","t":"FLATBED-BOX","b":"YN HUALI","m":"DHL9400","s":"n/a"},{"n":"FBB-009","t":"FLATBED-BOX","b":"YN HUALI","m":"DHL9400","s":"n/a"},{"n":"ICT-001","t":"CEMENT BULKER","b":"NORSAN","m":"TRAILER","s":"n/a"},{"n":"JE-029","t":"GENERATOR","b":"CATERPILLAR","m":"CATERPILLAR/C13","s":"400 kVA - 320 kW"},{"n":"JE-036","t":"GENERATOR","b":"EICHER","m":"EICHER","s":"30 kVA - 24 kW"},{"n":"JE-040","t":"GENERATOR","b":"EICHER","m":"EICHER","s":"160 kVA - 128 kW"},{"n":"JE-042","t":"GENERATOR","b":"EICHER","m":"EICHER","s":"24 kVA"},{"n":"JE-065","t":"GENERATOR","b":"AKSA","m":"AKSA/AD220","s":"220 kVA - 176 kW"},{"n":"JE-068","t":"GENERATOR","b":"AKSA","m":"AKSA/APD110C","s":"110 kVA - 88 kW"},{"n":"JE-069","t":"GENERATOR","b":"AKSA","m":"AKSA/APD110C","s":"110 kVA - 88 kW"},{"n":"JE-074","t":"GENERATOR","b":"AKSA","m":"AKSA/APD33C","s":"33 kVA - 26 kW"},{"n":"JE-075","t":"GENERATOR","b":"AKSA","m":"AKSA/APD33C","s":"33 kVA - 26 kW"},{"n":"JE-084","t":"GENERATOR","b":"EICHER","m":"EICHER/VEC62,5 KVA","s":"62.5 kVA"},{"n":"JE-085","t":"GENERATOR","b":"EICHER","m":"EICHER/VEC62,5 KVA","s":"62.5 kVA"},{"n":"JN-042","t":"GENERATOR","b":"AKSA","m":"APD50P","s":"50 kVA - 40 kW"},{"n":"JN-048","t":"GENERATOR","b":"TOTAL","m":"TP 165006-8","s":"15 kVA - 12 kW"},{"n":"JN-049","t":"GENERATOR","b":"TOTAL","m":"TP 165006-8","s":"15 kVA - 12 kW"},{"n":"JN-050","t":"GENERATOR","b":"ALIMARA","m":"ALMARGN 110","s":"110 kVA - 88 kW"},{"n":"GENSET-16","t":"GENERATOR","b":"OSAKA","m":"ODE 36 SS3","s":"36KVA"},{"n":"GENSET-17","t":"GENERATOR","b":"OSAKA","m":"ODE 36 SS3","s":"36KVA"},{"n":"GENSET-18","t":"GENERATOR","b":"OSAKA","m":"OD 184 G","s":"36KVA"},{"n":"GENSET-19","t":"GENERATOR","b":"OSAKA","m":"ODE 36 SS3","s":"36KVA"},{"n":"GENSET-20","t":"GENERATOR","b":"SA SERIES","m":"SA-GF3-33KVA","s":"33KVA"},{"n":"GENSET-21","t":"GENERATOR","b":"SANY","m":"SYL036DJ1","s":"360KW"},{"n":"JH-001","t":"HYDRAULIC BREAKER","b":"ZOOMLION","m":"HB 135","s":"n/a"},{"n":"JH-002","t":"HYDRAULIC BREAKER","b":"ZOOMLION","m":"HB 135","s":"n/a"},{"n":"JH-003","t":"HYDRAULIC BREAKER","b":"ZOOMLION","m":"HB 135","s":"n/a"},{"n":"JH-004","t":"HYDRAULIC BREAKER","b":"ZOOMLION","m":"HB 135","s":"n/a"},{"n":"JH-040","t":"HYDRAULIC BREAKER","b":"SOOSAN","m":"SB121","s":"3 t"},{"n":"JH-041","t":"HYDRAULIC BREAKER","b":"İMEKS","m":"400 M BHL","s":"4 t"},{"n":"JH-042","t":"HYDRAULIC BREAKER","b":"SOOSAN","m":"SB121","s":"3 t"},{"n":"JH-043","t":"HYDRAULIC BREAKER","b":"SOOSAN","m":"SB121","s":"3 t"},{"n":"JH-047","t":"HYDRAULIC BREAKER","b":"SOOSAN","m":"SB147","s":"4 t"},{"n":"JH-060","t":"HYDRAULIC BREAKER","b":"SOOSAN","m":"SB125","s":"3 t"},{"n":"LBB-002","t":"LOW BED-BOX","b":"TRAILER","m":"OZMAKSAN","s":"n/a"},{"n":"LBB-003","t":"LOW BED-BOX","b":"TRAILER","m":"JUPITER-FTW9500TD","s":"n/a"},{"n":"LBB-004","t":"LOW BED-BOX","b":"TRAILER","m":"LOWBED","s":"n/a"},{"n":"LBB-005","t":"LOW BED-BOX","b":"TRAILER","m":"LOWBED","s":"n/a"},{"n":"LBB-006","t":"LOW BED-BOX","b":"SHACMAN","m":"ZCZ9400TDPH","s":"n/a"},{"n":"LBB-007","t":"LOW BED-BOX","b":"SHACMAN","m":"ZCZ9400TDPH","s":"n/a"},{"n":"LV-001","t":"SUV","b":"TOYOTA","m":"PRADO","s":"4 X 4 / 6 SEAT / AT"},{"n":"LV-114","t":"PASSENGER BUS","b":"TOYOTA","m":"COSTER","s":"30 SEAT"},{"n":"LV-157","t":"PASSENGER BUS","b":"TATA","m":"1618","s":"66 SEAT"},{"n":"LV-168","t":"PICKUP","b":"TOYOTA","m":"DYNA","s":"3 T / 4X2 / DC /6 SEAT / MT"},{"n":"LV-178","t":"MINIVAN","b":"TOYOTA","m":"NOAH AZR 60G","s":"7 SEAT / AT"},{"n":"LV-179","t":"MINIVAN","b":"TOYOTA","m":"NOAH AZR 60G","s":"7 SEAT / AT"},{"n":"LV-180","t":"MINIVAN","b":"TOYOTA","m":"NOAH AZR 60G","s":"7 SEAT / AT"},{"n":"LV-181","t":"MAINTENANCE TRUCK","b":"FAW","m":"n/a","s":"n/a"},{"n":"LV-201","t":"MINIVAN","b":"TOYOTA","m":"VOXY","s":"7 SEAT / AT"},{"n":"LV-202","t":"MINIVAN","b":"TOYOTA","m":"VOXY","s":"7 SEAT / AT"},{"n":"LV-203","t":"MINIVAN","b":"TOYOTA","m":"VOXY","s":"7 SEAT / AT"},{"n":"LV-204","t":"MINIVAN","b":"TOYOTA","m":"VOXY","s":"7 SEAT / AT"},{"n":"LV-205","t":"MINIVAN","b":"TOYOTA","m":"VOXY","s":"7 SEAT / AT"},{"n":"LV-206","t":"SUV","b":"TOYOTA","m":"PRADO","s":"4 X 4 / 6 SEAT / AT"},{"n":"LV-207","t":"MINIVAN","b":"TOYOTA","m":"ALPHARD","s":"7 SEAT / AT"},{"n":"LV-208","t":"MINIVAN","b":"TOYOTA","m":"ALPHARD","s":"7 SEAT / AT"},{"n":"LV-209","t":"PICKUP","b":"EICHER","m":"PRO 1075","s":"7 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-210","t":"PICKUP","b":"EICHER","m":"PRO 1075","s":"7 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-211","t":"PICKUP","b":"EICHER","m":"PRO 1075","s":"7 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-212","t":"PICKUP","b":"EICHER","m":"PRO 1075","s":"7 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-213","t":"PICKUP","b":"EICHER","m":"PRO 1075","s":"7 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-214","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-215","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-216","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-217","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-218","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-219","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-220","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-221","t":"PASSENGER BUS","b":"TATA","m":"FORCE TRAVELLER FM3.2","s":"18 SEAT / MT"},{"n":"LV-222","t":"PASSENGER BUS","b":"TATA","m":"MARCOPOLO","s":"n/a"},{"n":"LV-223","t":"PASSENGER BUS","b":"TATA","m":"MARCOPOLO","s":"n/a"},{"n":"LV-224","t":"PICKUP","b":"TATA","m":"XENON X2 4X4","s":"1 T / 4X4 / DC / 5 SEAT / MT"},{"n":"LV-225","t":"PICKUP","b":"TATA","m":"XENON X2 4X4","s":"1 T / 4X4 / DC / 5 SEAT / MT"},{"n":"LV-226","t":"PICKUP","b":"TATA","m":"XENON X2 4X4","s":"1 T / 4X4 / DC / 5 SEAT / MT"},{"n":"LV-227","t":"PASSENGER BUS","b":"TATA","m":"MARCOPOLO","s":"n/a"},{"n":"LV-228","t":"PICKUP","b":"TATA","m":"XENON X2 4X4","s":"1 T / 4X4 / DC / 5 SEAT / MT"},{"n":"LV-229","t":"PASSENGER BUS","b":"TATA","m":"MARCOPOLO","s":"n/a"},{"n":"LV-230","t":"PASSENGER BUS","b":"TATA","m":"MARCOPOLO","s":"n/a"},{"n":"LV-231","t":"SUV","b":"FORCE","m":"GURKHA","s":"4 X 4 / SUV / 6 SEAT / MT"},{"n":"LV-232","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-233","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-234","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-235","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-236","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-237","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-238","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-239","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-240","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-241","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-242","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-248","t":"PICKUP","b":"TATA","m":"LPT810/38 CAB (TATA 497)","s":"5 T / 4X2 / SC / 3 SEAT / MT"},{"n":"LV-243","t":"PICKUP","b":"FOTON","m":"TUNLAND G7","s":"1 T / 4X4 / DC / 5 SEAT / AT"},{"n":"LV-244","t":"PICKUP","b":"FOTON","m":"TUNLAND G7","s":"1 T / 4X4 / DC / 5 SEAT / AT"},{"n":"LV-245","t":"PICKUP","b":"FOTON","m":"TUNLAND G7","s":"1 T / 4X4 / DC / 5 SEAT / AT"},{"n":"LV-246","t":"PICKUP","b":"FOTON","m":"TUNLAND G7","s":"1 T / 4X4 / DC / 5 SEAT / AT"},{"n":"LV-247","t":"PICKUP","b":"FOTON","m":"TUNLAND G7","s":"1 T / 4X4 / DC / 5 SEAT / AT"},{"n":"RB-001","t":"ROAD BROOM","b":"OKUR","m":"n/a","s":"n/a"},{"n":"RB-002","t":"ROAD BROOM","b":"FATIH FIRCA","m":"n/a","s":"n/a"},{"n":"RM-001","t":"ROAD MARKING MACHINE","b":"ALTEKMA","m":"ALT TC-500S","s":"n/a"},{"n":"TH-012","t":"TRAILER HEAD","b":"MAN","m":"TGS 19.400","s":"n/a"},{"n":"TH-014","t":"TRAILER HEAD","b":"MAN","m":"TGS 19.400","s":"n/a"},{"n":"TH-026","t":"TRAILER HEAD","b":"MAN","m":"TGS 19.400","s":"n/a"},{"n":"TH-104","t":"TRAILER HEAD","b":"HOWO","m":"CNHTC-371","s":"n/a"},{"n":"TR-002","t":"TRENCHER","b":"TESMEC","m":"1475","s":"n/a"},{"n":"TWL-006","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-009","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-019","t":"TOWERLIGHT","b":"WACKER NEULSON","m":"LTN6","s":"8KW"},{"n":"TWL-029","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-030","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-031","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-037","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-038","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-040","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-058","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"},{"n":"TWL-069","t":"TOWERLIGHT","b":"STAMPA","m":"V8","s":"8KW"}];
+window.EQUIPMENT_TYPES = ["AGGREGATE WASHING MACHINE","ASPALT DISTRIBUTOR","ASPHALT PAVER / FINISHER","ASPHALT PLANT","BACKHOE LOADER","BOOM TRUCK","BULLDOZER","CEMENT BULKER","COMBI SURFACE COATING VEHICLE","CONCRETE MIXER","CRAWLER EXCAVATOR","DOUBLE DRUM ROLLER COMPACTOR","DUMP TRUCK","DUMP TRUCK / EXPLOSIVE MATERIAL CARIER","DUMP TRUCK / REMOVABLE WATER TANKER","FLATBED-BOX","FUEL DISPENSER TRUCK","FUEL TANKER","GENERATOR","GRADER","HEAVY DUTY VEHICLE / AD-001 ASPALT DISTRIBUTOR","HEAVY DUTY VEHICLE / AD-002 ASPALT DISTRIBUTOR","HEAVY DUTY VEHICLE / CSCV-001 COMBI SURFACE COATING VEHICLE","HEAVY DUTY VEHICLE / CSCV-002 COMBI SURFACE COATING VEHICLE","HYDRAULIC BREAKER","HYDRAULIC CRAWLER DRILL","LOW BED-BOX","MAINTENANCE TRUCK","MEDIUM DUTY VEHICLE / FUEL DISPENSER TRUCK - BECAME TYRE TRUCK","MINIVAN","MOBILE CRANE","MOBILE CRUSHER","PASSENGER BUS","PICKUP","PNEUMATIC ROLLER COMPACTOR","POWER SCREEN","PRIME COAT TRAILER","ROAD BROOM","ROAD COLD RECYCLE MACHINE","ROAD MARKING MACHINE","ROLLER COMPACTOR","SKID STEER LOADER","SUV","TANDEM ROLLER","TELEHANDLER","TOWERLIGHT","TRACTOR","TRAILER HEAD","TRENCHER","VERTICAL SHAFT IMPACT CRUSHER","WATER TANKER","WATER TANKER TRAILER","WHEEL EXCAVATOR","WHEEL LOADER"];
+</script>
+<script>
+/* Günlük Bakım — TR / EN arayüz sözlüğü */
+window.I18N = {
+  tr: {
+    appTitle: 'Günlük Bakım Takibi',
+    appSub: 'On Field Daily Maintenance Report',
+    navToday: 'Bugün',
+    navHistory: 'Geçmiş',
+    navEquipment: 'Ekipmanlar',
+    navSettings: 'Ayarlar',
+
+    date: 'Tarih',
+    attender: 'Bakan Kişi',
+    attenderPh: 'Ad Soyad',
+    shift: 'Vardiya',
+    shiftDay: 'Gündüz',
+    shiftNight: 'Gece',
+    prevDay: 'Önceki gün',
+    nextDay: 'Sonraki gün',
+    today: 'Bugün',
+    yesterday: 'Dün',
+    daysAgo: '{n} gün önce',
+
+    kpiVisited: 'Bugün bakılan',
+    kpiVisitedNote: 'toplam {n} ekipman',
+    kpiProgress: 'Tamamlanma',
+    kpiPending: 'Bekleyen',
+    kpiPendingNote: 'bugün bakılmadı',
+    kpiWarnings: 'Uyarı',
+    kpiWarningsNote: '{n} gündür bakılmayan',
+    kpiLastDay: 'Dün bakılan',
+    kpiLastDayNote: 'önceki gün kaydı',
+
+    alertsTitle: '⚠ {n} ekipman 2 gündür üst üste bakıma gitmedi',
+    alertsTitleN: '⚠ {n} ekipman {d} gündür üst üste bakıma gitmedi',
+    alertsEmpty: 'Harika! 2 gündür bakımı yapılmayan ekipman yok.',
+    alertsMore: '+{n} ekipman daha (tümünü göster)',
+    alertsLess: 'Daha az göster',
+    lastMaintenance: 'Son bakım',
+    jumpTo: 'Listede göster',
+
+    markAll: 'Tümünü işaretle',
+    unmarkAll: 'İşaretleri kaldır',
+    onlyMissing: 'Sadece bakılmayanlar',
+    search: 'Ara',
+    searchPh: 'Ekipman no / tip / marka ara…',
+    allTypes: 'Tüm tipler',
+    showing: '{a} / {b} ekipman gösteriliyor',
+    saved: 'Kaydedildi',
+    downloaded: 'Dosya indirildi',
+    noRecordsYet: 'Bu tarih için kayıt yok — formu doldurduğunuzda otomatik oluşur.',
+
+    visited: 'Bakıldı',
+    equipmentNo: 'Ekipman No',
+    type: 'Tip',
+    brand: 'Marka',
+    model: 'Model',
+    spec: 'Spesifikasyon',
+    hours: 'Saat',
+    hoursPh: 'Motor saati',
+    location: 'Konum',
+    locationPh: 'Konum',
+    greasing: 'Yağlama',
+    airFilter: 'Hava Filtresi',
+    oils: 'Yağ Tipleri',
+    oilQtyTitle: 'Kullanılan miktar (litre)',
+    oilQtyShort: 'L',
+    observation: 'Gözlem',
+    observationPh: 'Gözlem / arıza…',
+    status: 'Durum',
+    actions: 'İşlem',
+
+    historyTitle: 'Geçmiş Kayıtlar',
+    historySub: 'En son nasıl bakım yapıldığını görün, gün gün geçmişe ulaşın.',
+    viewDays: 'Günlük Kayıtlar',
+    viewLast: 'Son Bakımlar',
+    from: 'Başlangıç',
+    to: 'Bitiş',
+    chartTitle: 'Son 14 gün — bakılan ekipman sayısı',
+    exportCsv: 'CSV indir (Excel)',
+    dayRecords: '{n} günlük kayıt',
+    visitedCount: '{n} bakıldı',
+    emptyHistory: 'Henüz bakım kaydı yok. Bugün sayfasından ilk kaydı girin.',
+    noMatchingDays: 'Seçilen kriterlere uyan gün bulunamadı.',
+    lastPerEqSub: 'Her ekipmanın en son bakım tarihi ve yapılanlar',
+    sonBakim: 'Son Bakım',
+    durum: 'Durum',
+    gapDays: '{n} gündür bakım yok',
+    never: 'Kayıt yok',
+    gapOne: '1 gündür (dün)',
+    detailsDone: 'Yapılan',
+    noVisit: 'Bakılmamış',
+
+    equipmentTitle: 'Ekipmanlar',
+    equipmentSub: 'Excel’den gelen {n} ekipmanlık ana liste — ekleme ve silme yapabilirsiniz.',
+    addEquipment: 'Ekipman Ekle',
+    deleteEquipment: 'Ekipman Sil',
+    addTitle: 'Yeni Ekipman Ekle',
+    deleteTitle: 'Ekipman Silinsin mi?',
+    deleteConfirm: '“{no}” listeden silinecek. Geçmiş bakım kayıtları korunur.',
+    noRequired: 'Ekipman no zorunludur.',
+    noExists: 'Bu ekipman no zaten listede var.',
+    eqAdded: '“{no}” eklendi.',
+    eqRemoved: '“{no}” silindi.',
+    resetSeed: 'Excel listesine dön (533 ekipman)',
+    resetSeedDesc: 'Silinen ekipmanları hariç tutarak orijinal Excel listesini geri yükler. Kayıtlar silinmez.',
+    resetSeedDone: 'Excel listesi geri yüklendi.',
+    typePh: 'Örn. BULLDOZER',
+    count: '{n} ekipman',
+
+    settingsTitle: 'Ayarlar',
+    settingsSub: 'Dil, uyarı eşiği ve veri yönetimi',
+    language: 'Dil / Language',
+    warnDaysLabel: 'Uyarı eşiği',
+    warnDaysDesc: 'Bir ekipman bu kadar gün üst üste bakılmazsa uyarı verilir. Varsayılan: 2 gün.',
+    backup: 'Yedeği indir (JSON)',
+    restore: 'Yedekten geri yükle',
+    restoreDone: 'Yedek geri yüklendi.',
+    restoreErr: 'Yedek dosyası okunamadı.',
+    clearRecords: 'Tüm bakım kayıtlarını sil',
+    clearRecordsDesc: 'Ekipman listesi silinmez, sadece geçmiş kayıtlar temizlenir.',
+    clearConfirm: 'Tüm bakım kayıtları silinecek. Bu işlem geri alınamaz. Silinsin mi?',
+    cleared: 'Tüm kayıtlar silindi.',
+    storageInfo: 'Veriler bu tarayıcının localStorage alanında tutulur. Farklı cihaza taşımak için yedekleyip karşı tarafta geri yükleyin.',
+    dataStats: 'Veri durumu',
+    statEquip: 'Ekipman',
+    statRecords: 'Günlük kayıt',
+    statVisits: 'Bakım ziyareti',
+
+    confirm: 'Onayla',
+    cancel: 'İptal',
+    close: 'Kapat',
+    del: 'Sil',
+    edit: 'Düzenle',
+    noneFound: 'Sonuç yok',
+    toastSaved: 'Kaydedildi',
+    warnChip: '{n} gün',
+    okChip: 'Bugün bakıldı',
+    pendingChip: 'Bakılmadı'
+  },
+
+  en: {
+    appTitle: 'Daily Maintenance Tracker',
+    appSub: 'On Field Daily Maintenance Report',
+    navToday: 'Today',
+    navHistory: 'History',
+    navEquipment: 'Equipment',
+    navSettings: 'Settings',
+
+    date: 'Date',
+    attender: 'Attender Name',
+    attenderPh: 'Full name',
+    shift: 'Shift',
+    shiftDay: 'Day',
+    shiftNight: 'Night',
+    prevDay: 'Previous day',
+    nextDay: 'Next day',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    daysAgo: '{n} days ago',
+
+    kpiVisited: 'Maintained today',
+    kpiVisitedNote: 'out of {n} equipment',
+    kpiProgress: 'Completion',
+    kpiPending: 'Pending',
+    kpiPendingNote: 'not maintained today',
+    kpiWarnings: 'Alerts',
+    kpiWarningsNote: 'skipped for days in a row',
+    kpiLastDay: 'Maintained yesterday',
+    kpiLastDayNote: 'previous day record',
+
+    alertsTitle: '⚠ {n} equipment has not been maintained for {d} days in a row',
+    alertsTitleN: '⚠ {n} equipment has not been maintained for {d} days in a row',
+    alertsEmpty: 'Great! No equipment has been skipped for 2 days in a row.',
+    alertsMore: '+{n} more equipment (show all)',
+    alertsLess: 'Show less',
+    lastMaintenance: 'Last maintenance',
+    jumpTo: 'Show in list',
+
+    markAll: 'Mark all',
+    unmarkAll: 'Unmark all',
+    onlyMissing: 'Only not maintained',
+    search: 'Search',
+    searchPh: 'Equipment no / type / brand…',
+    allTypes: 'All types',
+    showing: 'Showing {a} / {b} equipment',
+    saved: 'Saved',
+    downloaded: 'File downloaded',
+    noRecordsYet: 'No record for this date yet — it is created as you fill the form.',
+
+    visited: 'Maintained',
+    equipmentNo: 'Equipment No',
+    type: 'Type',
+    brand: 'Brand',
+    model: 'Model',
+    spec: 'Specification',
+    hours: 'Hours',
+    hoursPh: 'Engine hours',
+    location: 'Location',
+    locationPh: 'Location',
+    greasing: 'Greasing',
+    airFilter: 'Air Filter',
+    oils: 'Oil Types',
+    oilQtyTitle: 'Used quantity (liters)',
+    oilQtyShort: 'L',
+    observation: 'Observation',
+    observationPh: 'Observation / fault…',
+    status: 'Status',
+    actions: 'Action',
+
+    historyTitle: 'History',
+    historySub: 'See how maintenance was done last time, day by day.',
+    viewDays: 'Day Records',
+    viewLast: 'Last Maintenance',
+    from: 'From',
+    to: 'To',
+    chartTitle: 'Last 14 days — maintained equipment count',
+    exportCsv: 'Download CSV (Excel)',
+    dayRecords: '{n} daily records',
+    visitedCount: '{n} maintained',
+    emptyHistory: 'No maintenance records yet. Enter the first record on the Today page.',
+    noMatchingDays: 'No days match the selected criteria.',
+    lastPerEqSub: 'Last maintenance date and work done for each equipment',
+    sonBakim: 'Last Maintenance',
+    durum: 'Status',
+    gapDays: 'No maintenance for {n} days',
+    never: 'No record',
+    gapOne: '1 day (yesterday)',
+    detailsDone: 'Done',
+    noVisit: 'Not maintained',
+
+    equipmentTitle: 'Equipment',
+    equipmentSub: 'Master list of {n} equipment imported from Excel — you can add and delete.',
+    addEquipment: 'Add Equipment',
+    deleteEquipment: 'Delete Equipment',
+    addTitle: 'Add New Equipment',
+    deleteTitle: 'Delete Equipment?',
+    deleteConfirm: '“{no}” will be removed from the list. Past maintenance records are kept.',
+    noRequired: 'Equipment no is required.',
+    noExists: 'This equipment no already exists.',
+    eqAdded: '“{no}” added.',
+    eqRemoved: '“{no}” deleted.',
+    resetSeed: 'Restore Excel list (533 equipment)',
+    resetSeedDesc: 'Restores the original Excel list, keeping previously deleted ones out. Records are not deleted.',
+    resetSeedDone: 'Excel list restored.',
+    typePh: 'e.g. BULLDOZER',
+    count: '{n} equipment',
+
+    settingsTitle: 'Settings',
+    settingsSub: 'Language, alert threshold and data management',
+    language: 'Language / Dil',
+    warnDaysLabel: 'Alert threshold (days)',
+    warnDaysDesc: 'An equipment is alerted after this many consecutive days without maintenance. Default: 2 days.',
+    backup: 'Download backup (JSON)',
+    restore: 'Restore backup',
+    restoreDone: 'Backup restored.',
+    restoreErr: 'Backup file could not be read.',
+    clearRecords: 'Delete all maintenance records',
+    clearRecordsDesc: 'The equipment list is kept; only past records are removed.',
+    clearConfirm: 'All maintenance records will be deleted. This cannot be undone. Delete?',
+    cleared: 'All records deleted.',
+    storageInfo: 'Data is stored in this browser\'s localStorage. Use backup/restore to move it to another device.',
+    dataStats: 'Data status',
+    statEquip: 'Equipment',
+    statRecords: 'Daily records',
+    statVisits: 'Maintenance visits',
+
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    close: 'Close',
+    del: 'Delete',
+    edit: 'Edit',
+    noneFound: 'No results',
+    toastSaved: 'Saved',
+    warnChip: '{n} days',
+    okChip: 'Maintained today',
+    pendingChip: 'Not maintained'
+  }
+};
+
+/* Ekipman tipi çevirileri (veri Excel'den İngilizce gelir) */
+window.TYPE_TR = {
+  'DUMP TRUCK': 'DAMPERLİ KAMYON',
+  'CRAWLER EXCAVATOR': 'PALETLİ EKSKAVATÖR',
+  'WHEEL EXCAVATOR': 'TEKERLEKLİ EKSKAVATÖR',
+  'PICKUP': 'PİKAP',
+  'ROLLer COMPACTOR': 'YOL SİLİNDİRİ',
+  'ROLLER COMPACTOR': 'YOL SİLİNDİRİ',
+  'GENERATOR': 'JENERATÖR',
+  'GRADER': 'GRADER (KAZIMA MAKİNESİ)',
+  'PASSENGER BUS': 'YOLCU OTOBÜSÜ',
+  'WHEEL LOADER': 'TEKERLEKLİ YÜKLEYİCİ',
+  'BULLDOZER': 'DÖZER',
+  'BACKHOE LOADER': 'ARKA KAZICI KEPÇE',
+  'WATER TANKER': 'SU TANKERİ',
+  'TRAILER HEAD': 'TREYLER ÇEKİCİ',
+  'TOWERLIGHT': 'MOBİL AYDINLATMA KULESİ',
+  'CONCRETE MIXER': 'BETON MİKSERİ',
+  'MINIVAN': 'MİNİVAN',
+  'HYDRAULIC BREAKER': 'HİDROLİK KIRICI',
+  'TANDEM ROLLER': 'TANDEM SİLİNDİR',
+  'LOW BED-BOX': 'ALÇAK TABAN KASA',
+  'FUEL DISPENSER TRUCK': 'YAKIT DAĞITIM ARACI',
+  'FLATBED-BOX': 'DÜZ YATAK KASA',
+  'ASPHALT PAVER / FINISHER': 'ASFALT SERİCİ',
+  'PNEUMATIC ROLLER COMPACTOR': 'PNÖMATİK YOL SİLİNDİRİ',
+  'MOBILE CRUSHER': 'MOBİL KIRMA ELEME',
+  'TELEHANDLER': 'TELESKOPİK FORKLİF',
+  'POWER SCREEN': 'ELEME SİSTEMİ',
+  'MAINTENANCE TRUCK': 'BAKIM ARACI',
+  'HYDRAULIC CRAWLER DRILL': 'HİDROLİK PALETLİ SONDAJ',
+  'DUMP TRUCK / REMOVABLE WATER TANKER': 'DAMPERLİ KAMYON / ÇIKARILIR SU TANKERİ',
+  'BOOM TRUCK': 'PALANGALI KAMYON',
+  'ASPHALT PLANT': 'ASFALT SANTRALİ',
+  'VERTICAL SHAFT IMPACT CRUSHER': 'DİKEY MİL KIRICI (VSI)',
+  'SUV': 'SUV (ARAZİ ARACI)',
+  'ROAD BROOM': 'YOL SÜPÜRME ARACI',
+  'MOBILE CRANE': 'MOBİL VINÇ',
+  'DUMP TRUCK / EXPLOSIVE MATERIAL CARIER': 'DAMPERLİ KAMYON / PATLAYICI TAŞIYICI',
+  'DOUBLE DRUM ROLLER COMPACTOR': 'ÇİFT SİLİNDİRLİ YOL SİLİNDİRİ',
+  'COMBI SURFACE COATING VEHICLE': 'KOMBİ YOL KAPLAMA ARACI',
+  'ASPALT DISTRIBUTOR': 'ASFALT DAĞITICI',
+  'WATER TANKER TRAILER': 'SU TAŞIMA TREYLERİ',
+  'TRENCHER': 'KANAL KAZICI (TRENCHER)',
+  'TRACTOR': 'TRAKTÖR',
+  'SKID STEER LOADER': 'SKID STEER YÜKLEYİCİ',
+  'ROAD MARKING MACHINE': 'YOL ÇİZGİ MAKİNESİ',
+  'ROAD COLD RECYCLE MACHINE': 'YOL SOĞUK GERİ DÖNÜŞÜM MAKİNESİ',
+  'PRIME COAT TRAILER': 'PRİME KAT TAŞIMA TREYLERİ',
+  'FUEL TANKER': 'YAKIT TANKERİ',
+  'CEMENT BULKER': 'ÇİMENTO BULKERİ',
+  'AGGREGATE WASHING MACHINE': 'AGREGA YIKAMA MAKİNESİ',
+  'MEDIUM DUTY VEHICLE / FUEL DISPENSER TRUCK - BECAME TYRE TRUCK': 'ORTA TONAJLI ARAÇ / YAKIT DAĞITIM - LASTİK DEĞİŞİM ARACI',
+  'HEAVY DUTY VEHICLE / CSCV-002 COMBI SURFACE COATING VEHICLE': 'AĞIR TONAJLI ARAÇ / KOMBİ YOL KAPLAMA ARACI',
+  'HEAVY DUTY VEHICLE / CSCV-001 COMBI SURFACE COATING VEHICLE': 'AĞIR TONAJLI ARAÇ / KOMBİ YOL KAPLAMA ARACI',
+  'HEAVY DUTY VEHICLE / AD-002 ASPALT DISTRIBUTOR': 'AĞIR TONAJLI ARAÇ / ASFALT DAĞITICI',
+  'HEAVY DUTY VEHICLE / AD-001 ASPALT DISTRIBUTOR': 'AĞIR TONAJLI ARAÇ / ASFALT DAĞITICI'
+};
+</script>
+<script>
+/* Günlük Bakım — Daily Maintenance Tracker
+   Sayfa mantığı: Bugün / Geçmiş / Ekipmanlar / Ayarlar
+   Veri: localStorage, dille TR/EN */
+(function () {
+  'use strict';
+
+  const OILS = ['15W-40', '68', 'ACX30', 'ACX50', '80W-90', '85W-90', 'ATF DIII', 'COOL ELF', '85W-140'];
+  const STORE = 'gunlukBakim.v1';
+  const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  /* ================= yardımcılar ================= */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = n => String(n).padStart(2, '0');
+  const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const parseISO = iso => { const p = String(iso).split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); };
+  const diffDays = (a, b) => Math.round((parseISO(b) - parseISO(a)) / 86400000);
+  const addDays = (iso, n) => { const dt = new Date(parseISO(iso) + n * 86400000); return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate()); };
+  const bi = (trStr, enStr) => (state.lang === 'en' ? enStr : trStr);
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const p = iso.split('-');
+    return state.lang === 'en' ? EN_MONTHS[+p[1] - 1] + ' ' + (+p[2]) + ', ' + p[0] : p[2] + '.' + p[1] + '.' + p[0];
+  }
+  function fmtShort(iso) { const p = iso.split('-'); return state.lang === 'en' ? (+p[1]) + '/' + (+p[2]) : p[2] + '.' + p[1]; }
+  function t(key, vars) {
+    const dict = window.I18N[state.lang] || window.I18N.tr;
+    let s = dict[key];
+    if (s == null) s = window.I18N.tr[key] || key;
+    if (vars) for (const k in vars) s = s.split('{' + k + '}').join(String(vars[k]));
+    return s;
+  }
+  function tType(raw) { if (!raw) return ''; return state.lang === 'tr' ? (window.TYPE_TR[raw] || raw) : raw; }
+
+  /* ================= durum ================= */
+  let state = null;
+  const cache = { status: null, saveTimer: null, savedTimer: null, toastTimer: null };
+  const ui = {
+    page: 'today',
+    date: todayISO(),
+    search: '', type: '', onlyMissing: false,
+    histView: 'days', histFrom: '', histTo: '', histSearch: '',
+    eqSearch: '', eqType: '',
+    alertsExpanded: false,
+    refocus: null
+  };
+
+  function seedEquipment() {
+    return (window.EQUIPMENT_SEED || []).map(e => ({ id: e.n, n: e.n, t: e.t, b: e.b, m: e.m, s: e.s }));
+  }
+  function defaultState() {
+    return { lang: 'tr', settings: { warnDays: 2 }, equipment: seedEquipment(), removed: [], records: {} };
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (raw) {
+        const st = JSON.parse(raw);
+        if (st && Array.isArray(st.equipment)) {
+          st.settings = Object.assign({ warnDays: 2 }, st.settings || {});
+          st.removed = Array.isArray(st.removed) ? st.removed : [];
+          st.records = st.records && typeof st.records === 'object' ? st.records : {};
+          st.lang = st.lang === 'en' ? 'en' : 'tr';
+          return st;
+        }
+      }
+    } catch (e) { /* bozuk kayıt -> sıfırdan */ }
+    return defaultState();
+  }
+  function prune() {
+    for (const d in state.records) {
+      const r = state.records[d];
+      if (!r || typeof r !== 'object') { delete state.records[d]; continue; }
+      r.items = r.items || {};
+      for (const id in r.items) {
+        const it = r.items[id];
+        const has = it.v || it.g || it.af || (it.o && Object.keys(it.o).length) || it.h || it.loc || it.ob;
+        if (!has) delete r.items[id];
+      }
+      if (!r.attender && !Object.keys(r.items).length && (r.shift === 'day' || !r.shift)) delete state.records[d];
+    }
+  }
+  function save(now) {
+    clearTimeout(cache.saveTimer);
+    cache.status = null; /* durum anında tazelensin (KPI/uyarılar) */
+    const doSave = () => {
+      prune();
+      try {
+        localStorage.setItem(STORE, JSON.stringify(state));
+        flashSaved();
+      } catch (e) {
+        toast(bi('Kayıt alanı doldu! Eski kayıtları CSV ile indirip temizleyin.', 'Storage full! Export CSV and clean old records.'), 'err', 4200);
+      }
+    };
+    if (now) doSave(); else cache.saveTimer = setTimeout(doSave, 400);
+  }
+  function flashSaved() {
+    const el = $('#savedNote');
+    if (!el) return;
+    el.classList.add('show');
+    clearTimeout(cache.savedTimer);
+    cache.savedTimer = setTimeout(() => el.classList.remove('show'), 1400);
+  }
+  function toast(msg, kind, ms) {
+    const el = $('#toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'toast show' + (kind ? ' ' + kind : '');
+    clearTimeout(cache.toastTimer);
+    cache.toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2200);
+  }
+
+  function getRecord(d, create) {
+    if (!state.records[d]) {
+      if (!create) return null;
+      state.records[d] = { attender: '', shift: 'day', items: {} };
+    }
+    const r = state.records[d];
+    r.items = r.items || {};
+    return r;
+  }
+  function getItem(d, id, create) {
+    const r = getRecord(d, create);
+    if (!r) return null;
+    if (!r.items[id]) {
+      if (!create) return null;
+      r.items[id] = { v: 0, g: 0, af: 0, o: {}, h: '', loc: '', ob: '' };
+    }
+    const it = r.items[id];
+    it.o = it.o || {};
+    return it;
+  }
+
+  /* ================= durum hesapları ================= */
+  function computeStatuses() {
+    const recs = state.records;
+    const dates = Object.keys(recs).sort();
+    const last = {};
+    let firstVisit = null;
+    for (const d of dates) {
+      const items = (recs[d] && recs[d].items) || {};
+      let any = false;
+      for (const id in items) { if (items[id].v) { last[id] = d; any = true; } }
+      if (any && !firstVisit) firstVisit = d;
+    }
+    const today = todayISO();
+    const warnDays = Math.max(1, parseInt(state.settings.warnDays, 10) || 2);
+    const out = { last: last, byEq: {}, warnCount: 0, firstVisit: firstVisit };
+    for (const eq of state.equipment) {
+      const l = last[eq.id] || null;
+      let missed = 0, st;
+      if (l) {
+        missed = Math.max(0, diffDays(l, today));
+        st = missed >= warnDays ? 'warn' : (missed === 0 ? 'today' : (missed === 1 ? 'pending' : 'ok'));
+      } else {
+        const start = (eq.createdAt && firstVisit && eq.createdAt > firstVisit) ? eq.createdAt : firstVisit;
+        if (start) { missed = Math.max(0, diffDays(start, today) + 1); st = missed >= warnDays ? 'warn' : 'never'; }
+        else { missed = 0; st = 'never'; }
+      }
+      out.byEq[eq.id] = { last: l, missed: missed, st: st };
+      if (st === 'warn') out.warnCount++;
+    }
+    return out;
+  }
+  function statuses() { if (!cache.status) cache.status = computeStatuses(); return cache.status; }
+
+  function statusChip(s) {
+    if (s.st === 'today') return '<span class="chip ok">✓ ' + esc(t('okChip')) + '</span>';
+    if (s.st === 'warn') return '<span class="chip danger">⚠ ' + esc(t('warnChip', { n: s.missed })) + '</span>';
+    if (s.st === 'pending') return '<span class="chip warn">' + esc(t('pendingChip')) + '</span>';
+    if (s.st === 'ok') return '<span class="chip warn">' + esc(t('gapDays', { n: s.missed })) + '</span>';
+    return '<span class="chip neutral">' + esc(t('never')) + '</span>';
+  }
+
+  function visitsOn(d) {
+    const r = state.records[d];
+    if (!r) return 0;
+    let n = 0;
+    for (const id in r.items) if (r.items[id].v) n++;
+    return n;
+  }
+
+  /* ================= filtreler ================= */
+  function eqMatches(eq, q) {
+    if (!q) return true;
+    q = q.toLowerCase();
+    return (eq.n + ' ' + eq.t + ' ' + (eq.b || '') + ' ' + (eq.m || '')).toLowerCase().indexOf(q) !== -1;
+  }
+  function todayFilterList() {
+    const st = statuses();
+    return state.equipment.filter(eq => {
+      if (ui.type && eq.t !== ui.type) return false;
+      if (!eqMatches(eq, ui.search)) return false;
+      if (ui.onlyMissing) {
+        const it = getItem(ui.date, eq.id, false);
+        if (it && it.v) return false;
+      }
+      return true;
+    });
+  }
+
+  /* ================= sayfa: bugün ================= */
+  function renderToday() {
+    const list = todayFilterList();
+    const total = state.equipment.length;
+    const types = allTypes();
+    const rec = getRecord(ui.date, false);
+    const isToday = ui.date === todayISO();
+
+    const html = `
+      <h1 class="page-title">${esc(t('navToday'))} — ${esc(fmtDate(ui.date))}</h1>
+      <p class="page-sub">${esc(t('appSub'))}</p>
+
+      <div class="toolbar">
+        <div class="date-nav">
+          <button class="btn sm" data-act="date-prev" title="${esc(t('prevDay'))}">‹</button>
+          <input class="input" type="date" id="datePick" value="${esc(ui.date)}" max="${todayISO()}">
+          <button class="btn sm" data-act="date-next" title="${esc(t('nextDay'))}" ${isToday ? 'disabled' : ''}>›</button>
+          <button class="btn sm" data-act="date-today" ${isToday ? 'disabled' : ''}>${esc(t('today'))}</button>
+        </div>
+        <div class="field">
+          <label>${esc(t('attender'))}</label>
+          <input class="input" type="text" id="attenderInput" placeholder="${esc(t('attenderPh'))}" value="${esc(rec ? rec.attender : '')}">
+        </div>
+        <div class="field">
+          <label>${esc(t('shift'))}</label>
+          <select class="input" id="shiftSelect">
+            <option value="day" ${!rec || rec.shift !== 'night' ? 'selected' : ''}>${esc(t('shiftDay'))}</option>
+            <option value="night" ${rec && rec.shift === 'night' ? 'selected' : ''}>${esc(t('shiftNight'))}</option>
+          </select>
+        </div>
+        <span class="saved-note" id="savedNote">✔ ${esc(t('saved'))}</span>
+        <div class="spacer"></div>
+        <button class="btn sm" data-act="mark-all">${esc(t('markAll'))}</button>
+        <button class="btn sm" data-act="unmark-all">${esc(t('unmarkAll'))}</button>
+        <label class="check-inline"><input type="checkbox" class="cb" id="onlyMissing" ${ui.onlyMissing ? 'checked' : ''}> ${esc(t('onlyMissing'))}</label>
+        <div class="field">
+          <label>${esc(t('search'))}</label>
+          <input class="input" type="search" id="todaySearch" placeholder="${esc(t('searchPh'))}" value="${esc(ui.search)}" style="min-width:230px">
+        </div>
+        <div class="field">
+          <label>${esc(t('type'))}</label>
+          <select class="input" id="todayType">
+            <option value="">${esc(t('allTypes'))}</option>
+            ${types.map(x => `<option value="${esc(x)}" ${ui.type === x ? 'selected' : ''}>${esc(tType(x))}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+      <div id="alerts"></div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)">
+          <h2 style="margin:0">${esc(t('navToday'))} <span class="count" id="showingCount"></span></h2>
+          <span class="hint">${esc(t('noRecordsYet'))}</span>
+        </div>
+        <div id="todayTable"></div>
+      </div>`;
+
+    $('#main').innerHTML = html;
+    renderTodayTable();
+    updateTodayStats();
+  }
+
+  function renderTodayTable() {
+    const list = todayFilterList();
+    const total = state.equipment.length;
+    const show = $('#showingCount');
+    if (show) show.textContent = t('showing', { a: list.length, b: total });
+
+    if (!list.length) {
+      $('#todayTable').innerHTML = '<div class="empty"><span class="big">🔍</span>' + esc(t('noneFound')) + '</div>';
+      return;
+    }
+    const head = `
+      <thead><tr>
+        <th class="c-chk" title="${esc(t('visited'))}">✓</th>
+        <th class="c-no">${esc(t('equipmentNo'))}</th>
+        <th class="c-type">${esc(t('type'))}</th>
+        <th class="c-bm">${esc(t('brand'))} / ${esc(t('model'))}</th>
+        <th>${esc(t('hours'))}</th>
+        <th>${esc(t('location'))}</th>
+        <th class="o-col" title="${esc(t('greasing'))}">GRS</th>
+        <th class="o-col" title="${esc(t('airFilter'))}">AIR</th>
+        ${OILS.map(o => `<th class="o-col">${esc(o)}</th>`).join('')}
+        <th class="obs">${esc(t('observation'))}</th>
+      </tr></thead>`;
+
+    const rows = list.map(eq => {
+      const it = getItem(ui.date, eq.id, false) || { v: 0, g: 0, af: 0, o: {}, h: '', loc: '', ob: '' };
+      const oils = it.o || {};
+      return `
+      <tr data-row="${esc(eq.id)}" class="${it.v ? 'visited' : ''}">
+        <td class="c-chk"><input type="checkbox" class="cb big" data-f="v" data-id="${esc(eq.id)}" ${it.v ? 'checked' : ''}></td>
+        <td class="c-no" title="${esc(eq.n)}">${esc(eq.n)}</td>
+        <td class="c-type" title="${esc(eq.t)}">${esc(tType(eq.t))}<small>${esc(eq.s || '')}</small></td>
+        <td class="c-bm" title="${esc((eq.b || '') + ' ' + (eq.m || ''))}"><b>${esc(eq.b || '—')}</b><small>${esc(eq.m || '')}</small></td>
+        <td><input type="text" data-f="h" data-id="${esc(eq.id)}" value="${esc(it.h)}" placeholder="${esc(t('hours'))}" style="width:86px"></td>
+        <td><input type="text" data-f="loc" data-id="${esc(eq.id)}" value="${esc(it.loc)}" placeholder="${esc(t('locationPh'))}" style="min-width:110px"></td>
+        <td class="o-col"><input type="checkbox" class="cb" data-f="g" data-id="${esc(eq.id)}" ${it.g ? 'checked' : ''}></td>
+        <td class="o-col"><input type="checkbox" class="cb" data-f="af" data-id="${esc(eq.id)}" ${it.af ? 'checked' : ''}></td>
+        ${OILS.map(o => {
+          const ov = oils[o];
+          const qty = (ov && typeof ov === 'object') ? (ov.q || '') : '';
+          return `<td class="o-col"><span class="oil-cell">
+            <input type="checkbox" class="cb" data-f="oil" data-oil="${esc(o)}" data-id="${esc(eq.id)}" ${ov ? 'checked' : ''}>
+            <input type="number" class="oil-qty" data-f="oilq" data-oil="${esc(o)}" data-id="${esc(eq.id)}" value="${esc(qty)}" min="0" step="0.5" placeholder="${esc(t('oilQtyShort'))}" title="${esc(o)} — ${esc(t('oilQtyTitle'))}">
+          </span></td>`;
+        }).join('')}
+        <td class="obs"><input type="text" data-f="ob" data-id="${esc(eq.id)}" value="${esc(it.ob)}" placeholder="${esc(t('observationPh'))}"></td>
+      </tr>`;
+    }).join('');
+
+    $('#todayTable').innerHTML = `<div class="table-wrap"><table class="grid">${head}<tbody>${rows}</tbody></table></div>`;
+  }
+
+  function kpiBlock(cls, label, value, note) {
+    return `<div class="kpi ${cls}"><div class="k-label">${esc(label)}</div><div class="k-value">${value}</div><div class="k-note">${esc(note)}</div></div>`;
+  }
+
+  function updateTodayStats() {
+    const st = statuses();
+    const today = todayISO();
+    const warnDays = Math.max(1, parseInt(state.settings.warnDays, 10) || 2);
+    const total = state.equipment.length;
+    let visited = 0, warn = 0;
+    for (const eq of state.equipment) {
+      const s = st.byEq[eq.id];
+      if (s.st === 'today') visited++;
+      if (s.st === 'warn') warn++;
+    }
+    const yv = visitsOn(addDays(today, -1));
+    const pct = total ? Math.round(visited / total * 100) : 0;
+
+    const kpis = $('#kpis');
+    if (kpis) {
+      kpis.innerHTML =
+        kpiBlock('ok', t('kpiVisited'), `${visited} <span style="font-size:14px;color:var(--muted)">/ ${total}</span>`, t('kpiVisitedNote', { n: total })) +
+        `<div class="kpi info"><div class="k-label">${esc(t('kpiProgress'))}</div><div class="k-value">${pct}%</div><div class="progress"><i style="width:${pct}%"></i></div></div>` +
+        kpiBlock('warn', t('kpiPending'), total - visited, t('kpiPendingNote')) +
+        kpiBlock('danger', t('kpiWarnings'), warn, t('kpiWarningsNote', { n: warnDays })) +
+        kpiBlock('info', t('kpiLastDay'), yv, t('kpiLastDayNote'));
+    }
+
+    const alertsBox = $('#alerts');
+    if (alertsBox) {
+      if (!warn) {
+        alertsBox.innerHTML = `<div class="card" style="border-color:#bbf7d0;background:#f7fef9"><h2 style="color:var(--ok)">✔ ${esc(t('alertsEmpty'))}</h2></div>`;
+      } else {
+        const list = state.equipment
+          .filter(eq => st.byEq[eq.id].st === 'warn')
+          .sort((a, b) => st.byEq[b.id].missed - st.byEq[a.id].missed);
+        const cap = ui.alertsExpanded ? list.length : 12;
+        const shown = list.slice(0, cap);
+        const rest = list.length - shown.length;
+        alertsBox.innerHTML = `
+          <div class="card alerts">
+            <h2>${esc(t('alertsTitleN', { n: warn, d: warnDays }))}</h2>
+            <div class="alert-list">
+              ${shown.map(eq => {
+                const s = st.byEq[eq.id];
+                return `<div class="alert-item" data-act="jump" data-no="${esc(eq.n)}" title="${esc(t('jumpTo'))}">
+                  <span class="a-no">${esc(eq.n)}</span>
+                  <span class="a-type">${esc(tType(eq.t))}</span>
+                  <span class="a-last">${esc(t('lastMaintenance'))}: ${s.last ? esc(fmtDate(s.last)) : '—'}</span>
+                  <span class="a-days">⚠ ${esc(t('warnChip', { n: s.missed }))}</span>
+                </div>`;
+              }).join('')}
+            </div>
+            ${list.length > 12 ? `<div style="text-align:center;margin-top:10px">
+              <button class="btn sm" data-act="alerts-toggle">${rest > 0 ? esc(t('alertsMore', { n: rest })) : esc(t('alertsLess'))}</button>
+            </div>` : ''}
+          </div>`;
+      }
+    }
+
+    const badge = $('#navBadge');
+    if (badge) {
+      badge.textContent = warn;
+      badge.style.display = warn ? '' : 'none';
+    }
+  }
+
+  function allTypes() {
+    const set = {};
+    state.equipment.forEach(e => { if (e.t) set[e.t] = 1; });
+    return Object.keys(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function focusRow(id) {
+    const tr = $(`tr[data-row="${CSS.escape(id)}"]`);
+    if (!tr) return;
+    tr.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    tr.style.outline = '2px solid var(--brand2)';
+    setTimeout(() => { tr.style.outline = ''; }, 1800);
+  }
+
+  /* ================= sayfa: geçmiş ================= */
+  function renderHistory() {
+    const dates = Object.keys(state.records).sort().reverse();
+    const totalDays = dates.length;
+    let totalVisits = 0;
+    dates.forEach(d => { totalVisits += visitsOn(d); });
+
+    $('#main').innerHTML = `
+      <h1 class="page-title">${esc(t('historyTitle'))}</h1>
+      <p class="page-sub">${esc(t('historySub'))}</p>
+
+      <div class="kpis">
+        ${kpiBlock('info', t('viewDays'), totalDays, t('dayRecords', { n: totalDays }))}
+        ${kpiBlock('ok', t('kpiVisited'), totalVisits, t('statVisits'))}
+        ${kpiBlock('info', t('equipmentTitle'), state.equipment.length, t('statEquip'))}
+      </div>
+
+      <div class="card">
+        <h2>📊 ${esc(t('chartTitle'))}</h2>
+        <div class="chart" id="chart"></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="lang-switch" style="background:var(--neutral-bg)">
+          <button class="${ui.histView === 'days' ? 'active' : ''}" data-act="hist-view" data-view="days" style="color:inherit">${esc(t('viewDays'))}</button>
+          <button class="${ui.histView === 'last' ? 'active' : ''}" data-act="hist-view" data-view="last" style="color:inherit">${esc(t('viewLast'))}</button>
+        </div>
+        <div class="field"><label>${esc(t('from'))}</label><input class="input" type="date" id="histFrom" value="${esc(ui.histFrom)}"></div>
+        <div class="field"><label>${esc(t('to'))}</label><input class="input" type="date" id="histTo" value="${esc(ui.histTo)}"></div>
+        <div class="field"><label>${esc(t('search'))}</label><input class="input" type="search" id="histSearch" placeholder="${esc(t('searchPh'))}" value="${esc(ui.histSearch)}" style="min-width:230px"></div>
+        <div class="spacer"></div>
+        <button class="btn" data-act="export-csv">⬇ ${esc(t('exportCsv'))}</button>
+      </div>
+
+      <div id="histList"></div>`;
+
+    renderChart();
+    renderHistList();
+  }
+
+  function renderChart() {
+    const box = $('#chart');
+    if (!box) return;
+    const today = todayISO();
+    const days = [];
+    for (let i = 13; i >= 0; i--) days.push(addDays(today, -i));
+    const counts = days.map(d => visitsOn(d));
+    const max = Math.max(1, ...counts);
+    box.innerHTML = days.map((d, i) => {
+      const c = counts[i];
+      const h = Math.round(c / max * 100);
+      return `<div class="bar ${c ? '' : 'zero'}" title="${esc(fmtDate(d))}: ${c}">
+        <span>${c || ''}</span>
+        <i style="height:${Math.max(3, h)}%"></i>
+        <b>${esc(fmtShort(d))}</b>
+      </div>`;
+    }).join('');
+  }
+
+  function histFilteredDates() {
+    return Object.keys(state.records).sort().reverse().filter(d => {
+      if (ui.histFrom && d < ui.histFrom) return false;
+      if (ui.histTo && d > ui.histTo) return false;
+      if (ui.histSearch) {
+        const r = state.records[d];
+        const q = ui.histSearch.toLowerCase();
+        const attenderHit = (r.attender || '').toLowerCase().indexOf(q) !== -1;
+        const eqHit = Object.keys(r.items).some(id => {
+          const eq = eqById(id);
+          return eqMatches({ n: id, t: eq ? eq.t : '', b: eq ? eq.b : '', m: eq ? eq.m : '' }, q);
+        });
+        if (!attenderHit && !eqHit) return false;
+      }
+      return true;
+    });
+  }
+
+  function eqById(id) { return state.equipment.find(e => e.id === id) || null; }
+
+  function itemDoneChips(it) {
+    const chips = [];
+    if (it.g) chips.push('<span class="chip ok">GRS</span>');
+    if (it.af) chips.push('<span class="chip ok">AIR</span>');
+    Object.keys(it.o || {}).forEach(o => {
+      const v = it.o[o];
+      if (!v) return;
+      const q = (typeof v === 'object') ? v.q : '';
+      chips.push('<span class="chip oil">' + esc(o) + (q ? ' · ' + esc(q) + ' L' : '') + '</span>');
+    });
+    if (!chips.length && it.v) chips.push('<span class="chip neutral">' + esc(t('visited')) + '</span>');
+    if (!chips.length) chips.push('<span class="chip neutral">' + esc(t('noVisit')) + '</span>');
+    return chips.join(' ');
+  }
+
+  function renderHistList() {
+    const box = $('#histList');
+    if (!box) return;
+    if (ui.histView === 'last') return renderLastView(box);
+
+    const dates = histFilteredDates();
+    if (!Object.keys(state.records).length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🗂️</span>${esc(t('emptyHistory'))}</div></div>`;
+      return;
+    }
+    if (!dates.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🔍</span>${esc(t('noMatchingDays'))}</div></div>`;
+      return;
+    }
+    box.innerHTML = dates.map(d => {
+      const r = state.records[d];
+      const ids = Object.keys(r.items);
+      const vc = ids.filter(id => r.items[id].v).length;
+      const rows = ids.map(id => {
+        const it = r.items[id];
+        const eq = eqById(id);
+        return `<tr>
+          <td style="font-weight:700">${esc(id)}</td>
+          <td>${esc(eq ? tType(eq.t) : '')}</td>
+          <td>${esc(it.h || '—')}</td>
+          <td>${esc(it.loc || '—')}</td>
+          <td class="num">${it.g ? '✔' : ''}</td>
+          <td class="num">${it.af ? '✔' : ''}</td>
+          <td>${itemDoneChips(it)}</td>
+          <td>${esc(it.ob || '')}</td>
+        </tr>`;
+      }).join('');
+      return `
+      <details class="day-card">
+        <summary>
+          <span class="d-date">${esc(fmtDate(d))}</span>
+          <span class="d-meta">👤 ${esc(r.attender || '—')}</span>
+          <span class="d-meta">🕐 ${esc(r.shift === 'night' ? t('shiftNight') : t('shiftDay'))}</span>
+          <span class="chip ok">${esc(t('visitedCount', { n: vc }))}</span>
+          <span class="d-caret">›</span>
+        </summary>
+        <div class="d-body">
+          <table class="grid compact" style="min-width:900px">
+            <thead><tr>
+              <th>${esc(t('equipmentNo'))}</th><th>${esc(t('type'))}</th><th>${esc(t('hours'))}</th><th>${esc(t('location'))}</th>
+              <th class="num">${esc(t('greasing'))}</th><th class="num">${esc(t('airFilter'))}</th>
+              <th>${esc(t('detailsDone'))}</th><th>${esc(t('observation'))}</th>
+            </tr></thead>
+            <tbody>${rows || '<tr><td colspan="8" class="empty">' + esc(t('noVisit')) + '</td></tr>'}</tbody>
+          </table>
+        </div>
+      </details>`;
+    }).join('');
+  }
+
+  function renderLastView(box) {
+    const st = statuses();
+    const q = ui.histSearch;
+    const rows = state.equipment
+      .filter(eq => eqMatches(eq, q))
+      .map(eq => ({ eq: eq, s: st.byEq[eq.id] }))
+      .filter(x => !ui.histFrom || !x.s.last || x.s.last >= ui.histFrom)
+      .sort((a, b) => b.s.missed - a.s.missed || a.eq.n.localeCompare(b.eq.n));
+
+    if (!rows.length) { box.innerHTML = `<div class="card"><div class="empty"><span class="big">🔍</span>${esc(t('noneFound'))}</div></div>`; return; }
+
+    const body = rows.map(({ eq, s }) => {
+      let detail = '', att = '', ob = '';
+      if (s.last) {
+        const it = (state.records[s.last] || {}).items[eq.id];
+        const rec = state.records[s.last];
+        if (it) {
+          detail = itemDoneChips(it);
+          att = (rec && rec.attender) || '';
+          ob = it.ob || '';
+        }
+      }
+      return `<tr>
+        <td style="font-weight:700">${esc(eq.n)}</td>
+        <td title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
+        <td>${statusChip(s)}</td>
+        <td>${s.last ? esc(fmtDate(s.last)) + ` <span class="hint">(${esc(fmtDaysAgo(s.missed))})</span>` : '—'}</td>
+        <td><div class="tag-row">${detail}</div></td>
+        <td>${esc(ob || '—')}</td>
+        <td>${esc(att || '—')}</td>
+      </tr>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 14px;border-bottom:1px solid var(--line)"><h2 style="margin:0">🕘 ${esc(t('sonBakim'))} <span class="count">${esc(t('lastPerEqSub'))}</span></h2></div>
+        <div class="table-wrap">
+          <table class="grid compact" style="min-width:1050px">
+            <thead><tr>
+              <th>${esc(t('equipmentNo'))}</th><th>${esc(t('type'))}</th><th>${esc(t('durum'))}</th>
+              <th>${esc(t('sonBakim'))}</th><th>${esc(t('detailsDone'))}</th><th>${esc(t('observation'))}</th><th>${esc(t('attender'))}</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function fmtDaysAgo(n) {
+    if (n <= 0) return t('today');
+    if (n === 1) return t('yesterday');
+    return t('daysAgo', { n: n });
+  }
+
+  /* ================= sayfa: ekipmanlar ================= */
+  function renderEquipment() {
+    const types = allTypes();
+    $('#main').innerHTML = `
+      <h1 class="page-title">${esc(t('equipmentTitle'))}</h1>
+      <p class="page-sub">${esc(t('equipmentSub', { n: state.equipment.length }))}</p>
+
+      <div class="toolbar">
+        <div class="field"><label>${esc(t('search'))}</label><input class="input" type="search" id="eqSearch" placeholder="${esc(t('searchPh'))}" value="${esc(ui.eqSearch)}" style="min-width:260px"></div>
+        <div class="field"><label>${esc(t('type'))}</label>
+          <select class="input" id="eqType">
+            <option value="">${esc(t('allTypes'))}</option>
+            ${types.map(x => `<option value="${esc(x)}" ${ui.eqType === x ? 'selected' : ''}>${esc(tType(x))}</option>`).join('')}
+          </select>
+        </div>
+        <span class="hint" id="eqCount" style="padding-bottom:8px"></span>
+        <div class="spacer"></div>
+        <button class="btn" data-act="reset-seed" title="${esc(t('resetSeedDesc'))}">♻ ${esc(t('resetSeed'))}</button>
+        <button class="btn primary" data-act="add-eq">＋ ${esc(t('addEquipment'))}</button>
+      </div>
+
+      <div id="eqTable"></div>`;
+    renderEqTable();
+  }
+
+  function renderEqTable() {
+    const st = statuses();
+    const list = state.equipment.filter(eq => {
+      if (ui.eqType && eq.t !== ui.eqType) return false;
+      return eqMatches(eq, ui.eqSearch);
+    });
+    const c = $('#eqCount');
+    if (c) c.textContent = t('showing', { a: list.length, b: state.equipment.length });
+
+    if (!list.length) {
+      $('#eqTable').innerHTML = `<div class="card"><div class="empty"><span class="big">🚜</span>${esc(t('noneFound'))}</div></div>`;
+      return;
+    }
+    const rows = list.map(eq => {
+      const s = st.byEq[eq.id];
+      return `<tr>
+        <td style="font-weight:700">${esc(eq.n)}</td>
+        <td title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
+        <td>${esc(eq.b || '—')}</td>
+        <td>${esc(eq.m || '—')}</td>
+        <td class="hint">${esc(eq.s || '—')}</td>
+        <td>${statusChip(s)}</td>
+        <td>${s.last ? esc(fmtDate(s.last)) : '—'}</td>
+        <td class="num"><button class="btn sm ghost-danger" data-act="del-eq" data-no="${esc(eq.n)}">🗑 ${esc(t('del'))}</button></td>
+      </tr>`;
+    }).join('');
+
+    $('#eqTable').innerHTML = `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table class="grid compact" style="min-width:1020px">
+            <thead><tr>
+              <th>${esc(t('equipmentNo'))}</th><th>${esc(t('type'))}</th><th>${esc(t('brand'))}</th>
+              <th>${esc(t('model'))}</th><th>${esc(t('spec'))}</th><th>${esc(t('durum'))}</th>
+              <th>${esc(t('sonBakim'))}</th><th class="num">${esc(t('actions'))}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  /* ================= sayfa: ayarlar ================= */
+  function renderSettings() {
+    let recCount = 0, visitCount = 0;
+    for (const d in state.records) {
+      recCount++;
+      visitCount += visitsOn(d);
+    }
+    $('#main').innerHTML = `
+      <h1 class="page-title">${esc(t('settingsTitle'))}</h1>
+      <p class="page-sub">${esc(t('settingsSub'))}</p>
+
+      <div class="card">
+        <h2>🌐 ${esc(t('language'))}</h2>
+        <div class="row">
+          <div class="lang-switch" style="background:var(--neutral-bg)">
+            <button class="${state.lang === 'tr' ? 'active' : ''}" data-act="lang" data-lang="tr" style="color:inherit">TR</button>
+            <button class="${state.lang === 'en' ? 'active' : ''}" data-act="lang" data-lang="en" style="color:inherit">EN</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="set-row">
+          <div>
+            <div class="s-label">⚠ ${esc(t('warnDaysLabel'))}</div>
+            <div class="s-desc">${esc(t('warnDaysDesc'))}</div>
+          </div>
+          <input class="input" type="number" id="warnDays" min="1" max="30" value="${parseInt(state.settings.warnDays, 10) || 2}" style="width:90px">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>💾 ${esc(t('dataStats'))}</h2>
+        <div class="kpis" style="margin-bottom:0">
+          ${kpiBlock('info', t('statEquip'), state.equipment.length, t('count', { n: state.equipment.length }))}
+          ${kpiBlock('ok', t('statRecords'), recCount, t('viewDays'))}
+          ${kpiBlock('info', t('statVisits'), visitCount, t('kpiVisited'))}
+        </div>
+        <div class="sep"></div>
+        <div class="row">
+          <button class="btn" data-act="backup">⬇ ${esc(t('backup'))}</button>
+          <button class="btn" data-act="restore">⬆ ${esc(t('restore'))}</button>
+          <div class="spacer"></div>
+          <button class="btn ghost-danger" data-act="clear-records">🗑 ${esc(t('clearRecords'))}</button>
+        </div>
+        <p class="hint" style="margin-bottom:0">${esc(t('storageInfo'))}<br>${esc(t('clearRecordsDesc'))}</p>
+      </div>`;
+  }
+
+  /* ================= modal ================= */
+  function openModal(opts) {
+    closeModal();
+    const back = document.createElement('div');
+    back.className = 'modal-backdrop';
+    back.id = 'modalRoot';
+    back.innerHTML = `
+      <div class="modal" role="dialog">
+        <div class="m-head">${opts.title}</div>
+        <div class="m-body">${opts.body}</div>
+        <div class="m-foot">
+          <button class="btn" data-modal="cancel">${esc(t('cancel'))}</button>
+          ${opts.okLabel ? `<button class="btn ${opts.danger ? 'danger' : 'primary'}" data-modal="ok">${esc(opts.okLabel)}</button>` : ''}
+        </div>
+      </div>`;
+    document.body.appendChild(back);
+    back.addEventListener('click', e => {
+      if (e.target === back) closeModal();
+      const b = e.target.closest('[data-modal]');
+      if (!b) return;
+      if (b.dataset.modal === 'cancel') closeModal();
+      if (b.dataset.modal === 'ok' && opts.onOk) {
+        const res = opts.onOk(back);
+        if (res !== false) closeModal();
+      }
+    });
+    const first = back.querySelector('input,select,textarea');
+    if (first) setTimeout(() => first.focus(), 60);
+    return back;
+  }
+  function closeModal() { const m = document.getElementById('modalRoot'); if (m) m.remove(); }
+  function modalErr(back, msg) { const e = back.querySelector('.err'); if (e) e.textContent = msg || ''; }
+
+  function openAddEquipment() {
+    const types = allTypes();
+    openModal({
+      title: esc(t('addTitle')),
+      okLabel: t('addEquipment'),
+      body: `
+        <div class="field"><label>${esc(t('equipmentNo'))} *</label>
+          <input class="input" id="fNo" placeholder="BD-014" autocomplete="off"></div>
+        <div class="field"><label>${esc(t('type'))}</label>
+          <input class="input" id="fType" list="typeList" placeholder="${esc(t('typePh'))}" autocomplete="off">
+          <datalist id="typeList">${types.map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist></div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('brand'))}</label><input class="input" id="fBrand" autocomplete="off"></div>
+          <div class="field grow"><label>${esc(t('model'))}</label><input class="input" id="fModel" autocomplete="off"></div>
+        </div>
+        <div class="field"><label>${esc(t('spec'))}</label><input class="input" id="fSpec" autocomplete="off"></div>
+        <div class="err"></div>`,
+      onOk: back => {
+        const no = $('#fNo', back).value.trim();
+        const type = $('#fType', back).value.trim();
+        const brand = $('#fBrand', back).value.trim();
+        const model = $('#fModel', back).value.trim();
+        const spec = $('#fSpec', back).value.trim();
+        if (!no) { modalErr(back, t('noRequired')); return false; }
+        if (state.equipment.some(e => e.id.toLowerCase() === no.toLowerCase())) { modalErr(back, t('noExists')); return false; }
+        state.equipment.push({ id: no, n: no, t: type, b: brand, m: model, s: spec, createdAt: todayISO() });
+        state.removed = state.removed.filter(x => x !== no);
+        save(true);
+        closeModal();
+        toast(t('eqAdded', { no: no }), 'ok');
+        if (ui.page === 'equipment') renderEquipment(); else render();
+        updateTodayStats();
+        return true;
+      }
+    });
+  }
+
+  function confirmDeleteEquipment(no) {
+    openModal({
+      title: esc(t('deleteTitle')),
+      body: `<p>${esc(t('deleteConfirm', { no: no }))}</p>`,
+      okLabel: t('del'),
+      danger: true,
+      onOk: () => {
+        state.equipment = state.equipment.filter(e => e.id !== no);
+        if (state.removed.indexOf(no) === -1) state.removed.push(no);
+        save(true);
+        closeModal();
+        toast(t('eqRemoved', { no: no }), 'ok');
+        render();
+        return true;
+      }
+    });
+  }
+
+  /* ================= dışa aktarma ================= */
+  function downloadBlob(blob, name) {
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  function exportCsv() {
+    const sep = ';';
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const head = [t('date'), t('attender'), t('shift'), t('equipmentNo'), t('type'), t('brand'), t('model'), t('visited'), t('greasing'), t('airFilter'), t('oils'), t('hours'), t('location'), t('observation')];
+    const lines = [head.map(q).join(sep)];
+    const dates = histFilteredDates().slice().sort();
+    for (const d of dates) {
+      const r = state.records[d];
+      for (const id of Object.keys(r.items).sort()) {
+        const it = r.items[id];
+        const eq = eqById(id);
+        lines.push([
+          d, r.attender || '', r.shift === 'night' ? t('shiftNight') : t('shiftDay'),
+          id, eq ? eq.t : '', eq ? eq.b : '', eq ? eq.m : '',
+          it.v ? '✔' : '', it.g ? '✔' : '', it.af ? '✔' : '',
+          Object.keys(it.o || {}).filter(k => it.o[k]).map(k => {
+            const v = it.o[k];
+            const q = (v && typeof v === 'object') ? v.q : '';
+            return q ? k + ': ' + q + ' L' : k;
+          }).join(' / '),
+          it.h || '', it.loc || '', it.ob || ''
+        ].map(q).join(sep));
+      }
+    }
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(blob, 'gunluk-bakim_' + todayISO() + '.csv');
+    toast(t('downloaded'), 'ok');
+  }
+
+  function backupJson() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    downloadBlob(blob, 'gunluk-bakim-yedek_' + todayISO() + '.json');
+    toast(t('downloaded'), 'ok');
+  }
+
+  function restoreJson() {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.json,application/json';
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const st = JSON.parse(rd.result);
+          if (!st || !Array.isArray(st.equipment)) throw new Error('bad');
+          st.settings = Object.assign({ warnDays: 2 }, st.settings || {});
+          st.removed = Array.isArray(st.removed) ? st.removed : [];
+          st.records = st.records && typeof st.records === 'object' ? st.records : {};
+          st.lang = st.lang === 'en' ? 'en' : state.lang;
+          state = st;
+          save(true);
+          render();
+          toast(t('restoreDone'), 'ok');
+        } catch (e) {
+          toast(t('restoreErr'), 'err');
+        }
+      };
+      rd.onerror = () => toast(t('restoreErr'), 'err');
+      rd.readAsText(f);
+    });
+    inp.click();
+  }
+
+  /* ================= render ================= */
+  function renderChrome() {
+    const st = statuses();
+    const warn = st.warnCount;
+    $('#nav').innerHTML = `
+      <button data-act="nav" data-page="today" class="${ui.page === 'today' ? 'active' : ''}">🏠 ${esc(t('navToday'))} <span class="badge" id="navBadge" style="display:${warn ? 'inline-block' : 'none'}">${warn}</span></button>
+      <button data-act="nav" data-page="history" class="${ui.page === 'history' ? 'active' : ''}">🕘 ${esc(t('navHistory'))}</button>
+      <button data-act="nav" data-page="equipment" class="${ui.page === 'equipment' ? 'active' : ''}">🚜 ${esc(t('navEquipment'))}</button>
+      <button data-act="nav" data-page="settings" class="${ui.page === 'settings' ? 'active' : ''}">⚙️ ${esc(t('navSettings'))}</button>`;
+    $('#langSwitch').innerHTML = `
+      <button data-act="lang" data-lang="tr" class="${state.lang === 'tr' ? 'active' : ''}">TR</button>
+      <button data-act="lang" data-lang="en" class="${state.lang === 'en' ? 'active' : ''}">EN</button>`;
+    $('#brandTitle').textContent = t('appTitle');
+    $('#brandSub').textContent = t('appSub');
+    document.documentElement.lang = state.lang;
+    document.title = t('appTitle');
+  }
+
+  function render() {
+    renderChrome();
+    if (ui.page === 'today') renderToday();
+    else if (ui.page === 'history') renderHistory();
+    else if (ui.page === 'equipment') renderEquipment();
+    else renderSettings();
+    if (ui.refocus) {
+      const el = document.getElementById(ui.refocus);
+      if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) { /* number input */ } }
+      ui.refocus = null;
+    }
+  }
+
+  function refreshRow(id) {
+    const tr = $(`tr[data-row="${CSS.escape(id)}"]`);
+    if (!tr) return;
+    const it = getItem(ui.date, id, false);
+    tr.classList.toggle('visited', !!(it && it.v));
+  }
+
+  /* ================= olaylar ================= */
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]');
+    if (!el) return;
+    const act = el.dataset.act;
+
+    switch (act) {
+      case 'nav':
+        ui.page = el.dataset.page;
+        ui.refocus = null;
+        render();
+        window.scrollTo({ top: 0 });
+        break;
+
+      case 'lang':
+        state.lang = el.dataset.lang === 'en' ? 'en' : 'tr';
+        save(true);
+        render();
+        break;
+
+      case 'date-prev':
+        ui.date = addDays(ui.date, -1);
+        renderToday();
+        break;
+      case 'date-next':
+        if (ui.date < todayISO()) { ui.date = addDays(ui.date, 1); renderToday(); }
+        break;
+      case 'date-today':
+        ui.date = todayISO();
+        renderToday();
+        break;
+
+      case 'mark-all': {
+        const list = todayFilterList();
+        list.forEach(eq => { getItem(ui.date, eq.id, true).v = 1; });
+        save(true);
+        renderTodayTable();
+        updateTodayStats();
+        break;
+      }
+      case 'unmark-all': {
+        const list = todayFilterList();
+        list.forEach(eq => { const it = getItem(ui.date, eq.id, false); if (it) it.v = 0; });
+        save(true);
+        renderTodayTable();
+        updateTodayStats();
+        break;
+      }
+
+      case 'jump': {
+        ui.search = el.dataset.no;
+        ui.type = '';
+        ui.onlyMissing = false;
+        ui.page = 'today';
+        render();
+        setTimeout(() => focusRow(el.dataset.no), 80);
+        break;
+      }
+
+      case 'hist-view':
+        ui.histView = el.dataset.view;
+        renderHistory();
+        break;
+
+      case 'alerts-toggle':
+        ui.alertsExpanded = !ui.alertsExpanded;
+        updateTodayStats();
+        break;
+
+      case 'export-csv': exportCsv(); break;
+      case 'backup': backupJson(); break;
+      case 'restore': restoreJson(); break;
+
+      case 'add-eq': openAddEquipment(); break;
+      case 'del-eq': confirmDeleteEquipment(el.dataset.no); break;
+
+      case 'reset-seed': {
+        openModal({
+          title: esc(t('resetSeed')),
+          body: `<p>${esc(t('resetSeedDesc'))}</p>`,
+          okLabel: t('confirm'),
+          onOk: () => {
+            let added = 0;
+            (window.EQUIPMENT_SEED || []).forEach(e => {
+              if (state.removed.indexOf(e.n) !== -1) return;
+              if (state.equipment.some(x => x.id === e.n)) return;
+              state.equipment.push({ id: e.n, n: e.n, t: e.t, b: e.b, m: e.m, s: e.s });
+              added++;
+            });
+            save(true);
+            closeModal();
+            toast(t('resetSeedDone') + ' (+' + added + ')', 'ok');
+            render();
+            return true;
+          }
+        });
+        break;
+      }
+
+      case 'clear-records': {
+        openModal({
+          title: esc(t('clearRecords')),
+          body: `<p>${esc(t('clearConfirm'))}</p>`,
+          okLabel: t('del'),
+          danger: true,
+          onOk: () => {
+            state.records = {};
+            save(true);
+            closeModal();
+            toast(t('cleared'), 'ok');
+            render();
+            return true;
+          }
+        });
+        break;
+      }
+    }
+  });
+
+  /* checkbox / select / date değişimleri */
+  document.addEventListener('change', e => {
+    const el = e.target;
+
+    if (el.id === 'datePick') {
+      ui.date = el.value || todayISO();
+      if (ui.date > todayISO()) ui.date = todayISO();
+      renderToday();
+      return;
+    }
+    if (el.id === 'attenderInput') return; /* input event handles */
+    if (el.id === 'shiftSelect') {
+      const r = getRecord(ui.date, true);
+      r.shift = el.value;
+      save(true);
+      return;
+    }
+    if (el.id === 'onlyMissing') { ui.onlyMissing = el.checked; renderTodayTable(); return; }
+    if (el.id === 'todayType') { ui.type = el.value; renderTodayTable(); return; }
+    if (el.id === 'eqType') { ui.eqType = el.value; renderEqTable(); return; }
+    if (el.id === 'warnDays') {
+      state.settings.warnDays = Math.min(30, Math.max(1, parseInt(el.value, 10) || 2));
+      el.value = state.settings.warnDays;
+      save(true);
+      renderChrome();
+      return;
+    }
+    if (el.id === 'histFrom') { ui.histFrom = el.value; renderHistList(); return; }
+    if (el.id === 'histTo') { ui.histTo = el.value; renderHistList(); return; }
+
+    const f = el.dataset && el.dataset.f;
+    if (!f) return;
+    const id = el.dataset.id;
+    if (f === 'oil') {
+      const it = getItem(ui.date, id, true);
+      if (el.checked) { it.o[el.dataset.oil] = 1; it.v = 1; }
+      else delete it.o[el.dataset.oil];
+      const vCb = $(`tr[data-row="${CSS.escape(id)}"] [data-f="v"]`);
+      if (vCb) vCb.checked = !!it.v;
+      afterItemChange(id);
+      return;
+    }
+    if (f === 'v' || f === 'g' || f === 'af') {
+      const it = getItem(ui.date, id, true);
+      it[f] = el.checked ? 1 : 0;
+      if ((f === 'g' || f === 'af') && el.checked && !it.v) {
+        it.v = 1;
+        const vCb = $(`tr[data-row="${CSS.escape(id)}"] [data-f="v"]`);
+        if (vCb) vCb.checked = true;
+      }
+      afterItemChange(id);
+      return;
+    }
+  });
+
+  function afterItemChange(id) {
+    refreshRow(id);
+    updateTodayStats();
+    save();
+  }
+
+  /* metin girdileri */
+  document.addEventListener('input', e => {
+    const el = e.target;
+
+    if (el.id === 'attenderInput') {
+      const v = el.value;
+      if (v.trim()) { const r = getRecord(ui.date, true); r.attender = v; save(); }
+      else { const r = getRecord(ui.date, false); if (r) { r.attender = ''; save(); } }
+      return;
+    }
+    if (el.id === 'todaySearch') { ui.search = el.value; ui.refocus = 'todaySearch'; renderTodayTable(); return; }
+    if (el.id === 'eqSearch') { ui.eqSearch = el.value; ui.refocus = 'eqSearch'; renderEqTable(); return; }
+    if (el.id === 'histSearch') {
+      ui.histSearch = el.value;
+      ui.refocus = 'histSearch';
+      renderHistList();
+      return;
+    }
+
+    const f = el.dataset && el.dataset.f;
+    if (!f || f === 'v' || f === 'g' || f === 'af' || f === 'oil') return;
+    const id = el.dataset.id;
+    const it = getItem(ui.date, id, true);
+
+    if (f === 'oilq') {
+      /* yağ miktarı (litre): değer girilince yağ "kullanıldı" olur */
+      const name = el.dataset.oil;
+      const raw = el.value.trim();
+      if (raw === '') {
+        if (it.o[name]) it.o[name] = 1;
+      } else {
+        it.o[name] = { u: 1, q: raw };
+        it.v = 1;
+      }
+      const oilCb = $(`tr[data-row="${CSS.escape(id)}"] [data-f="oil"][data-oil="${name}"]`);
+      if (oilCb) oilCb.checked = !!it.o[name];
+      const vCb = $(`tr[data-row="${CSS.escape(id)}"] [data-f="v"]`);
+      if (vCb) vCb.checked = !!it.v;
+      afterItemChange(id);
+      return;
+    }
+
+    it[f] = el.value;
+    save();
+  });
+
+  /* kısayollar */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  /* ================= başlat ================= */
+  function boot() {
+    state = load();
+    ui.date = todayISO();
+    render();
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
