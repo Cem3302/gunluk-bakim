@@ -1,7 +1,7 @@
 {
-  "name": "Günlük Bakım Takibi",
-  "short_name": "Günlük Bakım",
-  "description": "On Field Daily Maintenance Report — günlük bakım takibi, geçmiş kayıtlar ve 2 gün üst üste bakım uyarısı",
+  "name": "Günlük Bakım ve Arıza Takibi",
+  "short_name": "Bakım & Arıza",
+  "description": "On Field Daily Maintenance & Fault Report — günlük bakım takibi, arıza takip raporu, geçmiş kayıtlar ve 2 gün üst üste bakım uyarısı",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",

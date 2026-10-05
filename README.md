@@ -1,4 +1,4 @@
-# Günlük Bakım — Daily Maintenance Tracker
+# Günlük Bakım ve Arıza Takibi — Daily Maintenance & Fault Tracking
 
 `daily maintenance.xlsx` dosyanızdan çıkarılan **533 ekipmanlık** listeyle çalışan
 web tabanlı günlük bakım uygulaması. **Tek dosya:** `index.html` — çift tıklayıp

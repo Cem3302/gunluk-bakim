@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Günlük Bakım Takibi</title>
-<meta name="description" content="On Field Daily Maintenance Report — günlük bakım takibi, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
+<title>Günlük Bakım ve Arıza Takibi</title>
+<meta name="description" content="On Field Daily Maintenance & Fault Report — günlük bakım takibi, arıza takip raporu, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -202,6 +202,8 @@ textarea.input { resize: vertical; min-height: 60px; }
 .btn.danger:hover { background: #b91c1c; }
 .btn.ghost-danger { color: var(--danger); border-color: #fca5a5; background: #fff; }
 .btn.ghost-danger:hover { background: var(--danger-bg); }
+.btn.ghost { color: var(--muted); background: transparent; }
+.btn.ghost:hover { background: var(--neutral-bg); }
 .btn.sm { padding: 5px 10px; font-size: 12.5px; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -451,6 +453,24 @@ table.grid.compact th, table.grid.compact td { padding: 6px 8px; }
 /* ---------- Satır açma/kapama düğmesi (yalnızca mobilde görünür) ---------- */
 .row-toggle { display: none; }
 
+/* makina bazlı arıza geçmişi */
+.eq-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.eq-link:hover { color: var(--brand2); }
+.fh-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow: auto; }
+.fh-item { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--neutral-bg); }
+.fh-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.fh-time { font-size: 12.5px; color: var(--muted); }
+.fh-line { font-size: 13px; margin-top: 2px; overflow-wrap: anywhere; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   main { padding: 12px; }
@@ -589,8 +609,8 @@ table.grid.compact th, table.grid.compact td { padding: 6px 8px; }
   <div class="brand">
     <span class="logo">🔧</span>
     <div>
-      <h1 id="brandTitle">Günlük Bakım Takibi</h1>
-      <small id="brandSub">On Field Daily Maintenance Report</small>
+      <h1 id="brandTitle">Günlük Bakım ve Arıza Takibi</h1>
+      <small id="brandSub">On Field Daily Maintenance &amp; Fault Report</small>
     </div>
   </div>
   <nav class="nav" id="nav"></nav>
@@ -612,8 +632,8 @@ window.EQUIPMENT_TYPES = ["AGGREGATE WASHING MACHINE","ASPALT DISTRIBUTOR","ASPH
 /* Günlük Bakım — TR / EN arayüz sözlüğü */
 window.I18N = {
   tr: {
-    appTitle: 'Günlük Bakım Takibi',
-    appSub: 'On Field Daily Maintenance Report',
+    appTitle: 'Günlük Bakım ve Arıza Takibi',
+    appSub: 'On Field Daily Maintenance & Fault Report',
     navToday: 'Bugün',
     navFaults: 'Arızalar',
     navHistory: 'Geçmiş',
@@ -775,6 +795,13 @@ window.I18N = {
     faultDoneF: 'Tamamlananlar',
     faultSearchPh: 'Makina no / arıza / yapılan iş ara…',
     exportFaults: 'Arıza CSV indir',
+    faultHistory: 'Arıza Geçmişi',
+    faultHistoryFor: '{no} — Arıza Geçmişi',
+    noFaultHistory: 'Bu makina için arıza kaydı yok.',
+    faultsShort: 'Arıza',
+    fhReport: 'Bildirim',
+    fhDesc: 'Tanım',
+    fhActs: 'İşlemler',
     stOpen: 'Açık',
     stWaitParts: 'Parça Bekliyor',
     stProgress: 'Onarımda',
@@ -794,8 +821,8 @@ window.I18N = {
   },
 
   en: {
-    appTitle: 'Daily Maintenance Tracker',
-    appSub: 'On Field Daily Maintenance Report',
+    appTitle: 'Daily Maintenance & Fault Tracking',
+    appSub: 'On Field Daily Maintenance & Fault Report',
     navToday: 'Today',
     navFaults: 'Faults',
     navHistory: 'History',
@@ -957,6 +984,13 @@ window.I18N = {
     faultDoneF: 'Resolved',
     faultSearchPh: 'Machine no / fault / work done…',
     exportFaults: 'Download faults CSV',
+    faultHistory: 'Fault History',
+    faultHistoryFor: '{no} — Fault History',
+    noFaultHistory: 'No fault records for this machine.',
+    faultsShort: 'Faults',
+    fhReport: 'Report',
+    fhDesc: 'Description',
+    fhActs: 'Actions',
     stOpen: 'Open',
     stWaitParts: 'Waiting for Parts',
     stProgress: 'In Progress',
@@ -1681,6 +1715,7 @@ window.TYPE_TR = {
     }
     const rows = list.map(eq => {
       const s = st.byEq[eq.id];
+      const fc = faultCountFor(eq.n);
       return `<tr>
         <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(eq.n)}</td>
         <td data-label="${esc(t('type'))}" title="${esc(eq.t)}">${esc(tType(eq.t))}</td>
@@ -1689,6 +1724,7 @@ window.TYPE_TR = {
         <td data-label="${esc(t('spec'))}" class="hint">${esc(eq.s || '—')}</td>
         <td data-label="${esc(t('durum'))}">${statusChip(s)}</td>
         <td data-label="${esc(t('sonBakim'))}">${s.last ? esc(fmtDate(s.last)) : '—'}</td>
+        <td class="num" data-label="${esc(t('faultsShort'))}"><button class="btn sm ${fc ? '' : 'ghost'}" data-act="fault-hist" data-no="${esc(eq.n)}" title="${esc(t('faultHistory'))}">🚨 ${fc}</button></td>
         <td class="num"><button class="btn sm ghost-danger" data-act="del-eq" data-no="${esc(eq.n)}">🗑 ${esc(t('del'))}</button></td>
       </tr>`;
     }).join('');
@@ -1699,8 +1735,10 @@ window.TYPE_TR = {
           <table class="grid compact" style="min-width:1020px">
             <thead><tr>
               <th>${esc(t('equipmentNo'))}</th><th>${esc(t('type'))}</th><th>${esc(t('brand'))}</th>
-              <th>${esc(t('model'))}</th><th>${esc(t('spec'))}</th><th>${esc(t('durum'))}</th>
-              <th>${esc(t('sonBakim'))}</th><th class="num">${esc(t('actions'))}</th>
+              <th>${esc(t('model'))}</th><th>${esc(t('spec'))}</th>              <th>${esc(t('durum'))}</th>
+              <th>${esc(t('sonBakim'))}</th>
+              <th class="num">🚨 ${esc(t('faultsShort'))}</th>
+              <th class="num">${esc(t('actions'))}</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
@@ -1810,7 +1848,7 @@ window.TYPE_TR = {
     const rows = list.map(f => {
       const dur = faultDuration(f);
       return `<tr>
-        <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(f.eq)}</td>
+        <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700"><button class="eq-link" data-act="fault-hist" data-no="${esc(f.eq)}">${esc(f.eq)}</button></td>
         <td data-label="${esc(t('fieldReport'))}">${esc(f.report || '—')}</td>
         <td data-label="${esc(t('fieldFaultDesc'))}">${esc(f.desc || '—')}</td>
         <td data-label="${esc(t('fStatus'))}">${faultChip(f.status)}</td>
@@ -1919,6 +1957,38 @@ window.TYPE_TR = {
         renderFaults();
         return true;
       }
+    });
+  }
+
+  function faultCountFor(no) {
+    return (state.faults || []).filter(f => f.eq === no).length;
+  }
+
+  function openFaultHistory(eqNo) {
+    const list = (state.faults || [])
+      .filter(f => f.eq === eqNo)
+      .sort((a, b) => String(b.start || b.createdAt || '').localeCompare(String(a.start || a.createdAt || '')));
+    const items = list.map(f => {
+      const dur = faultDuration(f);
+      return `<div class="fh-item">
+        <div class="fh-head">
+          ${faultChip(f.status)}
+          <span class="fh-time">🕐 ${esc(fmtDateTime(f.start))} → ${esc(fmtDateTime(f.end))}</span>
+          ${dur === null ? '' : `<span class="chip neutral">⏱ ${esc(t('faultHours', { n: dur }))}</span>`}
+        </div>
+        ${f.report ? `<div class="fh-line"><b>${esc(t('fhReport'))}:</b> ${esc(f.report)}</div>` : ''}
+        ${f.desc ? `<div class="fh-line"><b>${esc(t('fhDesc'))}:</b> ${esc(f.desc)}</div>` : ''}
+        ${f.acts ? `<div class="fh-line"><b>${esc(t('fhActs'))}:</b> ${esc(f.acts)}</div>` : ''}
+      </div>`;
+    }).join('');
+    openModal({
+      title: esc(t('faultHistoryFor', { no: eqNo })),
+      body: `<p class="hint" style="margin:0 0 8px">${esc(t('faultsCount', { n: list.length }))}</p>` +
+        (list.length
+          ? `<div class="fh-list">${items}</div>`
+          : `<div class="empty"><span class="big">🚨</span>${esc(t('noFaultHistory'))}</div>`),
+      okLabel: t('close'),
+      onOk: () => true
     });
   }
 
@@ -2277,6 +2347,7 @@ window.TYPE_TR = {
       case 'add-fault': openFaultModal(); break;
       case 'edit-fault': openFaultModal(el.dataset.id); break;
       case 'del-fault': confirmDeleteFault(el.dataset.id); break;
+      case 'fault-hist': openFaultHistory(el.dataset.no); break;
       case 'export-faults': exportFaultsCsv(); break;
 
       case 'add-eq': openAddEquipment(); break;

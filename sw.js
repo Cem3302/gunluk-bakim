@@ -1,7 +1,7 @@
 /* Günlük Bakım — Service Worker (çevrimdışı destek)
    Gezinmelerde önce ağ (her zaman güncel sürüm), çevrimdışıysa önbellek;
    diğer statik dosyalarda önce önbellek. */
-const CACHE = 'gunluk-bakim-v1';
+const CACHE = 'gunluk-bakim-v2';
 const SHELL = [
   './',
   './index.html',
