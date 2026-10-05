@@ -615,6 +615,7 @@ window.I18N = {
     appTitle: 'Günlük Bakım Takibi',
     appSub: 'On Field Daily Maintenance Report',
     navToday: 'Bugün',
+    navFaults: 'Arızalar',
     navHistory: 'Geçmiş',
     navEquipment: 'Ekipmanlar',
     navSettings: 'Ayarlar',
@@ -737,6 +738,49 @@ window.I18N = {
     statRecords: 'Günlük kayıt',
     statVisits: 'Bakım ziyareti',
 
+    faultsTitle: 'Günlük Arıza Takip Raporu',
+    faultsSub: 'Sahadan gelen arıza bildirimlerini kaydedin; durumunu, çözüm süresini ve yapılan işlemleri takip edin.',
+    faultsCount: '{n} arıza kaydı',
+    faultsShowing: '{a} / {b} arıza gösteriliyor',
+    addFault: 'Arıza Ekle',
+    editFault: 'Arızayı Düzenle',
+    fieldReport: 'Sahadan Gelen Arıza Bildirimi',
+    fieldFaultDesc: 'Arıza Tanımı',
+    fStatus: 'Son Durum',
+    fieldStart: 'Başlangıç Tarih/Saat',
+    fieldEnd: 'Bitiş Tarih/Saat',
+    fieldActionsTaken: 'Yapılan İşlemler',
+    faultDur: 'Süre',
+    faultHours: '{n} saat',
+    fEqPh: 'Makina no seçin veya yazın',
+    fReportPh: 'Sahadan gelen bildirim…',
+    fDescPh: 'Arıza tanımı…',
+    fActionsPh: 'Yapılan işçilik, değişen parçalar…',
+    faultReq: 'Makina numarası zorunludur.',
+    faultAdded: 'Arıza kaydı eklendi.',
+    faultUpdated: 'Arıza kaydı güncellendi.',
+    faultRemoved: 'Arıza kaydı silindi.',
+    delFaultTitle: 'Arıza Kaydı Silinsin mi?',
+    delFaultConfirm: '“{no}” için arıza kaydı silinecek. Bu işlem geri alınamaz.',
+    emptyFaults: 'Henüz arıza kaydı yok. “Arıza Ekle” ile ilk kaydı girin.',
+    faultTotal: 'Toplam arıza',
+    faultActive: 'Devam eden',
+    faultActiveNote: 'hâlâ açık arızalar',
+    faultDoneKpi: 'Tamamlanan',
+    faultDoneNote: 'kapanan arızalar',
+    faultThisMonth: 'Bu ay',
+    faultThisMonthNote: 'başlangıcı bu ay olan',
+    faultFilterAll: 'Tüm durumlar',
+    faultActiveF: 'Devam edenler',
+    faultDoneF: 'Tamamlananlar',
+    faultSearchPh: 'Makina no / arıza / yapılan iş ara…',
+    exportFaults: 'Arıza CSV indir',
+    stOpen: 'Açık',
+    stWaitParts: 'Parça Bekliyor',
+    stProgress: 'Onarımda',
+    stResolved: 'Tamamlandı',
+    stRecur: 'Tekrar Etti',
+
     confirm: 'Onayla',
     cancel: 'İptal',
     close: 'Kapat',
@@ -753,6 +797,7 @@ window.I18N = {
     appTitle: 'Daily Maintenance Tracker',
     appSub: 'On Field Daily Maintenance Report',
     navToday: 'Today',
+    navFaults: 'Faults',
     navHistory: 'History',
     navEquipment: 'Equipment',
     navSettings: 'Settings',
@@ -875,6 +920,49 @@ window.I18N = {
     statRecords: 'Daily records',
     statVisits: 'Maintenance visits',
 
+    faultsTitle: 'Daily Fault Tracking Report',
+    faultsSub: 'Log fault reports from the field; track status, resolution time and actions taken.',
+    faultsCount: '{n} fault records',
+    faultsShowing: '{a} / {b} faults shown',
+    addFault: 'Add Fault',
+    editFault: 'Edit Fault',
+    fieldReport: 'Fault Report from Field',
+    fieldFaultDesc: 'Fault Description',
+    fStatus: 'Last Status',
+    fieldStart: 'Start Date & Time',
+    fieldEnd: 'End Date & Time',
+    fieldActionsTaken: 'Actions Taken',
+    faultDur: 'Duration',
+    faultHours: '{n} h',
+    fEqPh: 'Select or type machine no',
+    fReportPh: 'Report from the field…',
+    fDescPh: 'Fault description…',
+    fActionsPh: 'Work done, replaced parts…',
+    faultReq: 'Machine no is required.',
+    faultAdded: 'Fault record added.',
+    faultUpdated: 'Fault record updated.',
+    faultRemoved: 'Fault record deleted.',
+    delFaultTitle: 'Delete Fault Record?',
+    delFaultConfirm: 'The fault record for “{no}” will be deleted. This cannot be undone.',
+    emptyFaults: 'No fault records yet. Use “Add Fault” to create the first one.',
+    faultTotal: 'Total faults',
+    faultActive: 'Ongoing',
+    faultActiveNote: 'still open faults',
+    faultDoneKpi: 'Resolved',
+    faultDoneNote: 'closed faults',
+    faultThisMonth: 'This month',
+    faultThisMonthNote: 'started this month',
+    faultFilterAll: 'All statuses',
+    faultActiveF: 'Ongoing',
+    faultDoneF: 'Resolved',
+    faultSearchPh: 'Machine no / fault / work done…',
+    exportFaults: 'Download faults CSV',
+    stOpen: 'Open',
+    stWaitParts: 'Waiting for Parts',
+    stProgress: 'In Progress',
+    stResolved: 'Resolved',
+    stRecur: 'Recurred',
+
     confirm: 'Confirm',
     cancel: 'Cancel',
     close: 'Close',
@@ -993,6 +1081,7 @@ window.TYPE_TR = {
     search: '', type: '', onlyMissing: false,
     histView: 'days', histFrom: '', histTo: '', histSearch: '',
     eqSearch: '', eqType: '',
+    faultSearch: '', faultFilter: '',
     alertsExpanded: false,
     refocus: null
   };
@@ -1001,7 +1090,7 @@ window.TYPE_TR = {
     return (window.EQUIPMENT_SEED || []).map(e => ({ id: e.n, n: e.n, t: e.t, b: e.b, m: e.m, s: e.s }));
   }
   function defaultState() {
-    return { lang: 'tr', settings: { warnDays: 2 }, equipment: seedEquipment(), removed: [], records: {} };
+    return { lang: 'tr', settings: { warnDays: 2 }, equipment: seedEquipment(), removed: [], records: {}, faults: [] };
   }
   function load() {
     try {
@@ -1012,6 +1101,7 @@ window.TYPE_TR = {
           st.settings = Object.assign({ warnDays: 2 }, st.settings || {});
           st.removed = Array.isArray(st.removed) ? st.removed : [];
           st.records = st.records && typeof st.records === 'object' ? st.records : {};
+          st.faults = Array.isArray(st.faults) ? st.faults : [];
           st.lang = st.lang === 'en' ? 'en' : 'tr';
           return st;
         }
@@ -1618,6 +1708,240 @@ window.TYPE_TR = {
       </div>`;
   }
 
+  /* ================= sayfa: arızalar ================= */
+  function fmtDateTime(dt) {
+    if (!dt) return '—';
+    const parts = String(dt).split('T');
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(parts[0]) ? fmtDate(parts[0]) : (parts[0] || '—');
+    return parts[1] ? date + ' ' + parts[1].slice(0, 5) : date;
+  }
+
+  function faultDone(status) {
+    const v = String(status || '').toLowerCase();
+    return ['tamamlandi', 'tamamlandı', 'done', 'resolved', 'closed', 'kapandi', 'kapandı', 'cozuldu', 'çözüldü']
+      .some(k => v.indexOf(k) !== -1);
+  }
+
+  function faultChip(status) {
+    if (!status) return '<span class="chip neutral">—</span>';
+    const v = String(status).toLowerCase();
+    let cls = 'warn';
+    if (faultDone(v)) cls = 'ok';
+    else if (['açık', 'acik', 'open'].some(k => v.indexOf(k) !== -1)) cls = 'danger';
+    return '<span class="chip ' + cls + '">' + esc(status) + '</span>';
+  }
+
+  function faultDuration(f) {
+    if (!f.start || !f.end) return null;
+    const s = Date.parse(f.start), e = Date.parse(f.end);
+    if (isNaN(s) || isNaN(e) || e < s) return null;
+    return Math.max(0, Math.round((e - s) / 3600000));
+  }
+
+  function faultsSorted() {
+    return (state.faults || []).slice().sort((a, b) =>
+      String(b.start || b.createdAt || '').localeCompare(String(a.start || a.createdAt || '')));
+  }
+
+  function faultsFiltered() {
+    const q = ui.faultSearch.trim().toLowerCase();
+    return faultsSorted().filter(f => {
+      const done = faultDone(f.status);
+      if (ui.faultFilter === 'active' && done) return false;
+      if (ui.faultFilter === 'done' && !done) return false;
+      if (q && [f.eq, f.report, f.desc, f.status, f.acts].join(' ').toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+
+  function renderFaults() {
+    const all = state.faults || [];
+    const month = todayISO().slice(0, 7);
+    const active = all.filter(f => !faultDone(f.status)).length;
+    const thisMonth = all.filter(f => String(f.start || f.createdAt || '').slice(0, 7) === month).length;
+
+    $('#main').innerHTML = `
+      <h1 class="page-title">${esc(t('faultsTitle'))}</h1>
+      <p class="page-sub">${esc(t('faultsSub'))}</p>
+
+      <div class="kpis">
+        ${kpiBlock('info', t('faultTotal'), all.length, t('faultsCount', { n: all.length }))}
+        ${kpiBlock('danger', t('faultActive'), active, t('faultActiveNote'))}
+        ${kpiBlock('ok', t('faultDoneKpi'), all.length - active, t('faultDoneNote'))}
+        ${kpiBlock('info', t('faultThisMonth'), thisMonth, t('faultThisMonthNote'))}
+      </div>
+
+      <div class="toolbar">
+        <div class="field"><label>${esc(t('search'))}</label>
+          <input class="input" type="search" id="faultSearch" placeholder="${esc(t('faultSearchPh'))}" value="${esc(ui.faultSearch)}" style="min-width:240px"></div>
+        <div class="field"><label>${esc(t('fStatus'))}</label>
+          <select class="input" id="faultFilter">
+            <option value="">${esc(t('faultFilterAll'))}</option>
+            <option value="active" ${ui.faultFilter === 'active' ? 'selected' : ''}>${esc(t('faultActiveF'))}</option>
+            <option value="done" ${ui.faultFilter === 'done' ? 'selected' : ''}>${esc(t('faultDoneF'))}</option>
+          </select></div>
+        <span class="hint" id="faultCount" style="padding-bottom:8px"></span>
+        <div class="spacer"></div>
+        <button class="btn" data-act="export-faults">⬇ ${esc(t('exportFaults'))}</button>
+        <button class="btn primary" data-act="add-fault">＋ ${esc(t('addFault'))}</button>
+      </div>
+
+      <div id="faultTable"></div>`;
+    renderFaultTable();
+  }
+
+  function renderFaultTable() {
+    const box = $('#faultTable');
+    if (!box) return;
+    const all = state.faults || [];
+    const list = faultsFiltered();
+    const c = $('#faultCount');
+    if (c) c.textContent = t('faultsShowing', { a: list.length, b: all.length });
+
+    if (!all.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🚨</span>${esc(t('emptyFaults'))}</div></div>`;
+      return;
+    }
+    if (!list.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🔍</span>${esc(t('noneFound'))}</div></div>`;
+      return;
+    }
+
+    const rows = list.map(f => {
+      const dur = faultDuration(f);
+      return `<tr>
+        <td data-label="${esc(t('equipmentNo'))}" style="font-weight:700">${esc(f.eq)}</td>
+        <td data-label="${esc(t('fieldReport'))}">${esc(f.report || '—')}</td>
+        <td data-label="${esc(t('fieldFaultDesc'))}">${esc(f.desc || '—')}</td>
+        <td data-label="${esc(t('fStatus'))}">${faultChip(f.status)}</td>
+        <td data-label="${esc(t('fieldStart'))}">${esc(fmtDateTime(f.start))}</td>
+        <td data-label="${esc(t('fieldEnd'))}">${esc(fmtDateTime(f.end))}</td>
+        <td class="num" data-label="${esc(t('faultDur'))}">${dur === null ? '—' : esc(t('faultHours', { n: dur }))}</td>
+        <td data-label="${esc(t('fieldActionsTaken'))}">${esc(f.acts || '—')}</td>
+        <td class="num">
+          <button class="btn sm" data-act="edit-fault" data-id="${esc(f.id)}">✏️ ${esc(t('edit'))}</button>
+          <button class="btn sm ghost-danger" data-act="del-fault" data-id="${esc(f.id)}">🗑</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table class="grid compact" style="min-width:1150px">
+            <thead><tr>
+              <th>${esc(t('equipmentNo'))}</th>
+              <th>${esc(t('fieldReport'))}</th>
+              <th>${esc(t('fieldFaultDesc'))}</th>
+              <th>${esc(t('fStatus'))}</th>
+              <th>${esc(t('fieldStart'))}</th>
+              <th>${esc(t('fieldEnd'))}</th>
+              <th class="num">${esc(t('faultDur'))}</th>
+              <th>${esc(t('fieldActionsTaken'))}</th>
+              <th class="num">${esc(t('actions'))}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function openFaultModal(id) {
+    const f = id ? (state.faults || []).find(x => x.id === id) : null;
+    const eqNos = state.equipment.map(e => e.n);
+    const statusKeys = ['stOpen', 'stWaitParts', 'stProgress', 'stResolved', 'stRecur'];
+    openModal({
+      title: esc(f ? t('editFault') : t('addFault')),
+      okLabel: f ? t('confirm') : t('addFault'),
+      body: `
+        <div class="field"><label>${esc(t('equipmentNo'))} *</label>
+          <input class="input" id="fMachine" list="eqNoList" value="${esc(f ? f.eq : '')}" placeholder="${esc(t('fEqPh'))}" autocomplete="off">
+          <datalist id="eqNoList">${eqNos.map(n => `<option value="${esc(n)}"></option>`).join('')}</datalist></div>
+        <div class="field"><label>${esc(t('fieldReport'))}</label>
+          <textarea class="input" id="fReport" rows="2" placeholder="${esc(t('fReportPh'))}">${esc(f ? f.report : '')}</textarea></div>
+        <div class="field"><label>${esc(t('fieldFaultDesc'))}</label>
+          <textarea class="input" id="fDesc" rows="2" placeholder="${esc(t('fDescPh'))}">${esc(f ? f.desc : '')}</textarea></div>
+        <div class="field"><label>${esc(t('fStatus'))}</label>
+          <input class="input" id="fStatusIn" list="statusList" value="${esc(f && f.status ? f.status : t('stOpen'))}" autocomplete="off">
+          <datalist id="statusList">${statusKeys.map(k => `<option value="${esc(t(k))}"></option>`).join('')}</datalist></div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('fieldStart'))}</label>
+            <input class="input" type="datetime-local" id="fStart" value="${esc(f ? f.start || '' : '')}"></div>
+          <div class="field grow"><label>${esc(t('fieldEnd'))}</label>
+            <input class="input" type="datetime-local" id="fEnd" value="${esc(f ? f.end || '' : '')}"></div>
+        </div>
+        <div class="field"><label>${esc(t('fieldActionsTaken'))}</label>
+          <textarea class="input" id="fActs" rows="3" placeholder="${esc(t('fActionsPh'))}">${esc(f ? f.acts : '')}</textarea></div>
+        <div class="err"></div>`,
+      onOk: back => {
+        const eq = $('#fMachine', back).value.trim();
+        if (!eq) { modalErr(back, t('faultReq')); return false; }
+        const data = {
+          eq: eq,
+          report: $('#fReport', back).value.trim(),
+          desc: $('#fDesc', back).value.trim(),
+          status: $('#fStatusIn', back).value.trim(),
+          start: $('#fStart', back).value,
+          end: $('#fEnd', back).value,
+          acts: $('#fActs', back).value.trim()
+        };
+        if (f) {
+          Object.assign(f, data);
+        } else {
+          state.faults = state.faults || [];
+          state.faults.push(Object.assign({
+            id: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            createdAt: todayISO()
+          }, data));
+        }
+        save(true);
+        closeModal();
+        toast(t(f ? 'faultUpdated' : 'faultAdded'), 'ok');
+        renderFaults();
+        return true;
+      }
+    });
+  }
+
+  function confirmDeleteFault(id) {
+    const f = (state.faults || []).find(x => x.id === id);
+    if (!f) return;
+    openModal({
+      title: esc(t('delFaultTitle')),
+      body: `<p>${esc(t('delFaultConfirm', { no: f.eq }))}</p>`,
+      okLabel: t('del'),
+      danger: true,
+      onOk: () => {
+        state.faults = (state.faults || []).filter(x => x.id !== id);
+        save(true);
+        closeModal();
+        toast(t('faultRemoved'), 'ok');
+        renderFaults();
+        return true;
+      }
+    });
+  }
+
+  function exportFaultsCsv() {
+    const sep = ';';
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const head = [t('equipmentNo'), t('fieldReport'), t('fieldFaultDesc'), t('fStatus'), t('fieldStart'), t('fieldEnd'), t('faultDur'), t('fieldActionsTaken')];
+    const lines = [head.map(q).join(sep)];
+    faultsFiltered().forEach(f => {
+      const dur = faultDuration(f);
+      lines.push([
+        f.eq, f.report, f.desc, f.status,
+        f.start ? String(f.start).replace('T', ' ') : '',
+        f.end ? String(f.end).replace('T', ' ') : '',
+        dur === null ? '' : t('faultHours', { n: dur }),
+        f.acts
+      ].map(q).join(sep));
+    });
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(blob, 'ariza-takip_' + todayISO() + '.csv');
+    toast(t('downloaded'), 'ok');
+  }
+
   /* ================= sayfa: ayarlar ================= */
   function renderSettings() {
     let recCount = 0, visitCount = 0;
@@ -1815,6 +2139,7 @@ window.TYPE_TR = {
           st.settings = Object.assign({ warnDays: 2 }, st.settings || {});
           st.removed = Array.isArray(st.removed) ? st.removed : [];
           st.records = st.records && typeof st.records === 'object' ? st.records : {};
+          st.faults = Array.isArray(st.faults) ? st.faults : [];
           st.lang = st.lang === 'en' ? 'en' : state.lang;
           state = st;
           save(true);
@@ -1836,6 +2161,7 @@ window.TYPE_TR = {
     const warn = st.warnCount;
     $('#nav').innerHTML = `
       <button data-act="nav" data-page="today" class="${ui.page === 'today' ? 'active' : ''}">🏠 ${esc(t('navToday'))} <span class="badge" id="navBadge" style="display:${warn ? 'inline-block' : 'none'}">${warn}</span></button>
+      <button data-act="nav" data-page="faults" class="${ui.page === 'faults' ? 'active' : ''}">🚨 ${esc(t('navFaults'))}</button>
       <button data-act="nav" data-page="history" class="${ui.page === 'history' ? 'active' : ''}">🕘 ${esc(t('navHistory'))}</button>
       <button data-act="nav" data-page="equipment" class="${ui.page === 'equipment' ? 'active' : ''}">🚜 ${esc(t('navEquipment'))}</button>
       <button data-act="nav" data-page="settings" class="${ui.page === 'settings' ? 'active' : ''}">⚙️ ${esc(t('navSettings'))}</button>`;
@@ -1851,6 +2177,7 @@ window.TYPE_TR = {
   function render() {
     renderChrome();
     if (ui.page === 'today') renderToday();
+    else if (ui.page === 'faults') renderFaults();
     else if (ui.page === 'history') renderHistory();
     else if (ui.page === 'equipment') renderEquipment();
     else renderSettings();
@@ -1947,6 +2274,11 @@ window.TYPE_TR = {
       case 'backup': backupJson(); break;
       case 'restore': restoreJson(); break;
 
+      case 'add-fault': openFaultModal(); break;
+      case 'edit-fault': openFaultModal(el.dataset.id); break;
+      case 'del-fault': confirmDeleteFault(el.dataset.id); break;
+      case 'export-faults': exportFaultsCsv(); break;
+
       case 'add-eq': openAddEquipment(); break;
       case 'del-eq': confirmDeleteEquipment(el.dataset.no); break;
 
@@ -2013,6 +2345,7 @@ window.TYPE_TR = {
     if (el.id === 'onlyMissing') { ui.onlyMissing = el.checked; renderTodayTable(); return; }
     if (el.id === 'todayType') { ui.type = el.value; renderTodayTable(); return; }
     if (el.id === 'eqType') { ui.eqType = el.value; renderEqTable(); return; }
+    if (el.id === 'faultFilter') { ui.faultFilter = el.value; renderFaultTable(); return; }
     if (el.id === 'warnDays') {
       state.settings.warnDays = Math.min(30, Math.max(1, parseInt(el.value, 10) || 2));
       el.value = state.settings.warnDays;
@@ -2066,6 +2399,7 @@ window.TYPE_TR = {
     }
     if (el.id === 'todaySearch') { ui.search = el.value; ui.refocus = 'todaySearch'; renderTodayTable(); return; }
     if (el.id === 'eqSearch') { ui.eqSearch = el.value; ui.refocus = 'eqSearch'; renderEqTable(); return; }
+    if (el.id === 'faultSearch') { ui.faultSearch = el.value; ui.refocus = 'faultSearch'; renderFaultTable(); return; }
     if (el.id === 'histSearch') {
       ui.histSearch = el.value;
       ui.refocus = 'histSearch';
