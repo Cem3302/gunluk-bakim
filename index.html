@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Günlük Bakım ve Arıza Takibi</title>
-<meta name="description" content="On Field Daily Maintenance & Fault Report — günlük bakım takibi, arıza takip raporu, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
+<meta name="description" content="On Field Daily Maintenance & Fault Report — günlük bakım takibi, arıza takip raporu, lastik değişim takibi, geçmiş kayıtlar, 2 gün üst üste bakım uyarısı">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -636,6 +636,7 @@ window.I18N = {
     appSub: 'On Field Daily Maintenance & Fault Report',
     navToday: 'Bugün',
     navFaults: 'Arızalar',
+    navTyres: 'Lastikler',
     navHistory: 'Geçmiş',
     navEquipment: 'Ekipmanlar',
     navSettings: 'Ayarlar',
@@ -802,6 +803,46 @@ window.I18N = {
     fhReport: 'Bildirim',
     fhDesc: 'Tanım',
     fhActs: 'İşlemler',
+
+    tyresTitle: 'Lastik Değişim Takip Sistemi',
+    tyresSub: 'Lastik değişim kayıtlarını girin; tarih, vardiya, yapan personel ve lastik bilgileriyle takip edin.',
+    tyresCount: '{n} lastik kaydı',
+    tyresShowing: '{a} / {b} kayıt gösteriliyor',
+    addTyre: 'Lastik Kaydı Ekle',
+    editTyre: 'Lastik Kaydını Düzenle',
+    tColNo: 'NO',
+    tColSticker: 'Sticker',
+    tColPlate: 'Plaka No',
+    tColKm: 'Araç KM/Saat',
+    tColStart: 'Başlangıç Saati',
+    tColFinish: 'Bitiş Saati',
+    tColBrand: 'Lastik Markası',
+    tColSize: 'Lastik Ölçüsü',
+    tColSerial: 'Lastik Seri No',
+    tColPlace: 'Lastik Yeri',
+    tColService: 'Yapılan İşlem',
+    platePh: '34 ABC 123',
+    kmPh: 'ör. 125430',
+    stickerPh: 'ör. ST-1024',
+    tyreBrandPh: 'ör. MICHELIN',
+    tyreSizePh: 'ör. 29.5R25',
+    serialPh: 'ör. TY-998877',
+    placePh: 'ör. Ön Sol',
+    servicePh: 'ör. Sökme-takma, balans',
+    tyreReq: 'Tarih ve plaka zorunludur.',
+    tyreAdded: 'Lastik kaydı eklendi.',
+    tyreUpdated: 'Lastik kaydı güncellendi.',
+    tyreRemoved: 'Lastik kaydı silindi.',
+    delTyreTitle: 'Lastik Kaydı Silinsin mi?',
+    delTyreConfirm: '{no} numaralı lastik kaydı silinecek. Bu işlem geri alınamaz.',
+    emptyTyres: 'Henüz lastik kaydı yok. “Lastik Kaydı Ekle” ile ilk kaydı girin.',
+    tyreTotal: 'Toplam kayıt',
+    tyreMonth: 'Bu ay',
+    tyreTodayKpi: 'Bugün',
+    tyrePlates: 'Farklı plaka',
+    platesNote: '{n} plaka',
+    tyreSearchPh: 'Plaka / lastik / personel / seri no ara…',
+    exportTyres: 'Lastik CSV indir',
     stOpen: 'Açık',
     stWaitParts: 'Parça Bekliyor',
     stProgress: 'Onarımda',
@@ -825,6 +866,7 @@ window.I18N = {
     appSub: 'On Field Daily Maintenance & Fault Report',
     navToday: 'Today',
     navFaults: 'Faults',
+    navTyres: 'Tyres',
     navHistory: 'History',
     navEquipment: 'Equipment',
     navSettings: 'Settings',
@@ -991,6 +1033,46 @@ window.I18N = {
     fhReport: 'Report',
     fhDesc: 'Description',
     fhActs: 'Actions',
+
+    tyresTitle: 'Tyre Change Tracking System',
+    tyresSub: 'Log tyre change records; track date, shift, personnel on duty and tyre details.',
+    tyresCount: '{n} tyre records',
+    tyresShowing: '{a} / {b} records shown',
+    addTyre: 'Add Tyre Record',
+    editTyre: 'Edit Tyre Record',
+    tColNo: 'NO',
+    tColSticker: 'Sticker',
+    tColPlate: 'Plate Number',
+    tColKm: 'Vehicle KM/HR',
+    tColStart: 'Start Time',
+    tColFinish: 'Finish Time',
+    tColBrand: 'Tyre Brand',
+    tColSize: 'Tyre Size',
+    tColSerial: 'Serial Number',
+    tColPlace: 'Tyre Place',
+    tColService: 'Service Rendered',
+    platePh: '34 ABC 123',
+    kmPh: 'e.g. 125430',
+    stickerPh: 'e.g. ST-1024',
+    tyreBrandPh: 'e.g. MICHELIN',
+    tyreSizePh: 'e.g. 29.5R25',
+    serialPh: 'e.g. TY-998877',
+    placePh: 'e.g. Front Left',
+    servicePh: 'e.g. Mounting, balancing',
+    tyreReq: 'Date and plate are required.',
+    tyreAdded: 'Tyre record added.',
+    tyreUpdated: 'Tyre record updated.',
+    tyreRemoved: 'Tyre record deleted.',
+    delTyreTitle: 'Delete Tyre Record?',
+    delTyreConfirm: 'Tyre record {no} will be deleted. This cannot be undone.',
+    emptyTyres: 'No tyre records yet. Use “Add Tyre Record” to create the first one.',
+    tyreTotal: 'Total records',
+    tyreMonth: 'This month',
+    tyreTodayKpi: 'Today',
+    tyrePlates: 'Distinct plates',
+    platesNote: '{n} plates',
+    tyreSearchPh: 'Plate / tyre / personnel / serial no…',
+    exportTyres: 'Download tyre CSV',
     stOpen: 'Open',
     stWaitParts: 'Waiting for Parts',
     stProgress: 'In Progress',
@@ -1116,6 +1198,7 @@ window.TYPE_TR = {
     histView: 'days', histFrom: '', histTo: '', histSearch: '',
     eqSearch: '', eqType: '',
     faultSearch: '', faultFilter: '',
+    tyreSearch: '', tyreFrom: '', tyreTo: '',
     alertsExpanded: false,
     refocus: null
   };
@@ -1124,7 +1207,7 @@ window.TYPE_TR = {
     return (window.EQUIPMENT_SEED || []).map(e => ({ id: e.n, n: e.n, t: e.t, b: e.b, m: e.m, s: e.s }));
   }
   function defaultState() {
-    return { lang: 'tr', settings: { warnDays: 2 }, equipment: seedEquipment(), removed: [], records: {}, faults: [] };
+    return { lang: 'tr', settings: { warnDays: 2 }, equipment: seedEquipment(), removed: [], records: {}, faults: [], tyres: [] };
   }
   function load() {
     try {
@@ -1136,6 +1219,7 @@ window.TYPE_TR = {
           st.removed = Array.isArray(st.removed) ? st.removed : [];
           st.records = st.records && typeof st.records === 'object' ? st.records : {};
           st.faults = Array.isArray(st.faults) ? st.faults : [];
+          st.tyres = Array.isArray(st.tyres) ? st.tyres : [];
           st.lang = st.lang === 'en' ? 'en' : 'tr';
           return st;
         }
@@ -2012,6 +2096,260 @@ window.TYPE_TR = {
     toast(t('downloaded'), 'ok');
   }
 
+  /* ================= sayfa: lastikler ================= */
+  function tyresSorted() {
+    return (state.tyres || []).slice().sort((a, b) =>
+      String(b.date || '').localeCompare(String(a.date || '')) ||
+      String(b.start || '').localeCompare(String(a.start || '')) ||
+      (parseInt(b.no, 10) || 0) - (parseInt(a.no, 10) || 0));
+  }
+
+  function tyresFiltered() {
+    const q = ui.tyreSearch.trim().toLowerCase();
+    return tyresSorted().filter(r => {
+      if (ui.tyreFrom && (!r.date || r.date < ui.tyreFrom)) return false;
+      if (ui.tyreTo && (!r.date || r.date > ui.tyreTo)) return false;
+      if (q && [r.plate, r.sticker, r.brand, r.size, r.serial, r.place, r.service, r.person, r.km]
+        .join(' ').toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+
+  function nextTyreNo() {
+    return (state.tyres || []).reduce((m, r) => Math.max(m, parseInt(r.no, 10) || 0), 0) + 1;
+  }
+
+  function tyrePlateList() {
+    const set = {};
+    (state.tyres || []).forEach(r => { if (r.plate) set[r.plate] = 1; });
+    return Object.keys(set).sort();
+  }
+
+  function renderTyres() {
+    const all = state.tyres || [];
+    const month = todayISO().slice(0, 7);
+    const today = todayISO();
+    const monthN = all.filter(r => String(r.date || '').slice(0, 7) === month).length;
+    const todayN = all.filter(r => r.date === today).length;
+    const plates = tyrePlateList().length;
+
+    $('#main').innerHTML = `
+      <h1 class="page-title">${esc(t('tyresTitle'))}</h1>
+      <p class="page-sub">${esc(t('tyresSub'))}</p>
+
+      <div class="kpis">
+        ${kpiBlock('info', t('tyreTotal'), all.length, t('tyresCount', { n: all.length }))}
+        ${kpiBlock('ok', t('tyreMonth'), monthN, t('tyresCount', { n: monthN }))}
+        ${kpiBlock('danger', t('tyreTodayKpi'), todayN, t('tyresCount', { n: todayN }))}
+        ${kpiBlock('info', t('tyrePlates'), plates, t('platesNote', { n: plates }))}
+      </div>
+
+      <div class="toolbar">
+        <div class="field"><label>${esc(t('search'))}</label>
+          <input class="input" type="search" id="tyreSearch" placeholder="${esc(t('tyreSearchPh'))}" value="${esc(ui.tyreSearch)}" style="min-width:240px"></div>
+        <div class="field"><label>${esc(t('from'))}</label>
+          <input class="input" type="date" id="tyreFrom" value="${esc(ui.tyreFrom)}"></div>
+        <div class="field"><label>${esc(t('to'))}</label>
+          <input class="input" type="date" id="tyreTo" value="${esc(ui.tyreTo)}"></div>
+        <span class="hint" id="tyreCount" style="padding-bottom:8px"></span>
+        <div class="spacer"></div>
+        <button class="btn" data-act="export-tyres">⬇ ${esc(t('exportTyres'))}</button>
+        <button class="btn primary" data-act="add-tyre">＋ ${esc(t('addTyre'))}</button>
+      </div>
+
+      <div id="tyreTable"></div>`;
+    renderTyreTable();
+  }
+
+  function renderTyreTable() {
+    const box = $('#tyreTable');
+    if (!box) return;
+    const all = state.tyres || [];
+    const list = tyresFiltered();
+    const c = $('#tyreCount');
+    if (c) c.textContent = t('tyresShowing', { a: list.length, b: all.length });
+
+    if (!all.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🛞</span>${esc(t('emptyTyres'))}</div></div>`;
+      return;
+    }
+    if (!list.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><span class="big">🔍</span>${esc(t('noneFound'))}</div></div>`;
+      return;
+    }
+
+    const rows = list.map(r => `<tr>
+      <td class="num" data-label="${esc(t('tColNo'))}" style="font-weight:700">${esc(r.no != null ? r.no : '—')}</td>
+      <td data-label="${esc(t('date'))}">${esc(fmtDate(r.date))}</td>
+      <td data-label="${esc(t('shift'))}">${esc(r.shift === 'night' ? t('shiftNight') : t('shiftDay'))}</td>
+      <td data-label="${esc(t('attender'))}">${esc(r.person || '—')}</td>
+      <td data-label="${esc(t('tColSticker'))}">${esc(r.sticker || '—')}</td>
+      <td data-label="${esc(t('tColPlate'))}" style="font-weight:700">${esc(r.plate)}</td>
+      <td class="num" data-label="${esc(t('tColKm'))}">${esc(r.km || '—')}</td>
+      <td class="num" data-label="${esc(t('tColStart'))}">${esc(r.start || '—')}</td>
+      <td class="num" data-label="${esc(t('tColFinish'))}">${esc(r.finish || '—')}</td>
+      <td data-label="${esc(t('tColBrand'))}">${esc(r.brand || '—')}</td>
+      <td data-label="${esc(t('tColSize'))}">${esc(r.size || '—')}</td>
+      <td data-label="${esc(t('tColSerial'))}">${esc(r.serial || '—')}</td>
+      <td data-label="${esc(t('tColPlace'))}">${esc(r.place || '—')}</td>
+      <td data-label="${esc(t('tColService'))}">${esc(r.service || '—')}</td>
+      <td class="num">
+        <button class="btn sm" data-act="edit-tyre" data-id="${esc(r.id)}">✏️ ${esc(t('edit'))}</button>
+        <button class="btn sm ghost-danger" data-act="del-tyre" data-id="${esc(r.id)}">🗑</button>
+      </td>
+    </tr>`).join('');
+
+    box.innerHTML = `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table class="grid compact" style="min-width:1500px">
+            <thead><tr>
+              <th class="num">${esc(t('tColNo'))}</th>
+              <th>${esc(t('date'))}</th>
+              <th>${esc(t('shift'))}</th>
+              <th>${esc(t('attender'))}</th>
+              <th>${esc(t('tColSticker'))}</th>
+              <th>${esc(t('tColPlate'))}</th>
+              <th class="num">${esc(t('tColKm'))}</th>
+              <th class="num">${esc(t('tColStart'))}</th>
+              <th class="num">${esc(t('tColFinish'))}</th>
+              <th>${esc(t('tColBrand'))}</th>
+              <th>${esc(t('tColSize'))}</th>
+              <th>${esc(t('tColSerial'))}</th>
+              <th>${esc(t('tColPlace'))}</th>
+              <th>${esc(t('tColService'))}</th>
+              <th class="num">${esc(t('actions'))}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function openTyreModal(id) {
+    const r = id ? (state.tyres || []).find(x => x.id === id) : null;
+    const plates = tyrePlateList();
+    openModal({
+      title: esc(r ? t('editTyre') : t('addTyre')),
+      okLabel: r ? t('confirm') : t('addTyre'),
+      body: `
+        <div class="row">
+          <div class="field grow"><label>${esc(t('date'))} *</label>
+            <input class="input" type="date" id="tyDate" value="${esc(r ? r.date || '' : todayISO())}" max="${todayISO()}"></div>
+          <div class="field grow"><label>${esc(t('shift'))}</label>
+            <select class="input" id="tyShift">
+              <option value="day" ${!r || r.shift !== 'night' ? 'selected' : ''}>${esc(t('shiftDay'))}</option>
+              <option value="night" ${r && r.shift === 'night' ? 'selected' : ''}>${esc(t('shiftNight'))}</option>
+            </select></div>
+        </div>
+        <div class="field"><label>${esc(t('attender'))}</label>
+          <input class="input" id="tyPerson" placeholder="${esc(t('attenderPh'))}" value="${esc(r ? r.person || '' : '')}" autocomplete="off"></div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('tColPlate'))} *</label>
+            <input class="input" id="tyPlate" list="tyPlateList" placeholder="${esc(t('platePh'))}" value="${esc(r ? r.plate || '' : '')}" autocomplete="off">
+            <datalist id="tyPlateList">${plates.map(p => `<option value="${esc(p)}"></option>`).join('')}</datalist></div>
+          <div class="field grow"><label>${esc(t('tColSticker'))}</label>
+            <input class="input" id="tySticker" placeholder="${esc(t('stickerPh'))}" value="${esc(r ? r.sticker || '' : '')}" autocomplete="off"></div>
+        </div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('tColKm'))}</label>
+            <input class="input" id="tyKm" placeholder="${esc(t('kmPh'))}" value="${esc(r ? r.km || '' : '')}" autocomplete="off"></div>
+          <div class="field grow"><label>${esc(t('tColStart'))}</label>
+            <input class="input" type="time" id="tyStart" value="${esc(r ? r.start || '' : '')}"></div>
+          <div class="field grow"><label>${esc(t('tColFinish'))}</label>
+            <input class="input" type="time" id="tyFinish" value="${esc(r ? r.finish || '' : '')}"></div>
+        </div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('tColBrand'))}</label>
+            <input class="input" id="tyBrand" placeholder="${esc(t('tyreBrandPh'))}" value="${esc(r ? r.brand || '' : '')}" autocomplete="off"></div>
+          <div class="field grow"><label>${esc(t('tColSize'))}</label>
+            <input class="input" id="tySize" placeholder="${esc(t('tyreSizePh'))}" value="${esc(r ? r.size || '' : '')}" autocomplete="off"></div>
+        </div>
+        <div class="row">
+          <div class="field grow"><label>${esc(t('tColSerial'))}</label>
+            <input class="input" id="tySerial" placeholder="${esc(t('serialPh'))}" value="${esc(r ? r.serial || '' : '')}" autocomplete="off"></div>
+          <div class="field grow"><label>${esc(t('tColPlace'))}</label>
+            <input class="input" id="tyPlace" placeholder="${esc(t('placePh'))}" value="${esc(r ? r.place || '' : '')}" autocomplete="off"></div>
+        </div>
+        <div class="field"><label>${esc(t('tColService'))}</label>
+          <textarea class="input" id="tyService" rows="2" placeholder="${esc(t('servicePh'))}">${esc(r ? r.service || '' : '')}</textarea></div>
+        <div class="err"></div>`,
+      onOk: back => {
+        const date = $('#tyDate', back).value;
+        const plate = $('#tyPlate', back).value.trim();
+        if (!date || !plate) { modalErr(back, t('tyreReq')); return false; }
+        const data = {
+          date: date,
+          shift: $('#tyShift', back).value === 'night' ? 'night' : 'day',
+          person: $('#tyPerson', back).value.trim(),
+          plate: plate,
+          sticker: $('#tySticker', back).value.trim(),
+          km: $('#tyKm', back).value.trim(),
+          start: $('#tyStart', back).value,
+          finish: $('#tyFinish', back).value,
+          brand: $('#tyBrand', back).value.trim(),
+          size: $('#tySize', back).value.trim(),
+          serial: $('#tySerial', back).value.trim(),
+          place: $('#tyPlace', back).value.trim(),
+          service: $('#tyService', back).value.trim()
+        };
+        if (r) {
+          Object.assign(r, data);
+        } else {
+          state.tyres = state.tyres || [];
+          state.tyres.push(Object.assign({
+            id: 'y' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            no: nextTyreNo(),
+            createdAt: todayISO()
+          }, data));
+        }
+        save(true);
+        closeModal();
+        toast(t(r ? 'tyreUpdated' : 'tyreAdded'), 'ok');
+        renderTyres();
+        return true;
+      }
+    });
+  }
+
+  function confirmDeleteTyre(id) {
+    const r = (state.tyres || []).find(x => x.id === id);
+    if (!r) return;
+    openModal({
+      title: esc(t('delTyreTitle')),
+      body: `<p>${esc(t('delTyreConfirm', { no: r.no != null ? r.no : '—' }))}</p>`,
+      okLabel: t('del'),
+      danger: true,
+      onOk: () => {
+        state.tyres = (state.tyres || []).filter(x => x.id !== id);
+        save(true);
+        closeModal();
+        toast(t('tyreRemoved'), 'ok');
+        renderTyres();
+        return true;
+      }
+    });
+  }
+
+  function exportTyresCsv() {
+    const sep = ';';
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const head = [t('tColNo'), t('date'), t('shift'), t('attender'), t('tColSticker'), t('tColPlate'),
+      t('tColKm'), t('tColStart'), t('tColFinish'), t('tColBrand'), t('tColSize'),
+      t('tColSerial'), t('tColPlace'), t('tColService')];
+    const lines = [head.map(q).join(sep)];
+    tyresFiltered().forEach(r => {
+      lines.push([
+        r.no, r.date, r.shift === 'night' ? t('shiftNight') : t('shiftDay'), r.person,
+        r.sticker, r.plate, r.km, r.start, r.finish,
+        r.brand, r.size, r.serial, r.place, r.service
+      ].map(q).join(sep));
+    });
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(blob, 'lastik-takip_' + todayISO() + '.csv');
+    toast(t('downloaded'), 'ok');
+  }
+
   /* ================= sayfa: ayarlar ================= */
   function renderSettings() {
     let recCount = 0, visitCount = 0;
@@ -2210,6 +2548,7 @@ window.TYPE_TR = {
           st.removed = Array.isArray(st.removed) ? st.removed : [];
           st.records = st.records && typeof st.records === 'object' ? st.records : {};
           st.faults = Array.isArray(st.faults) ? st.faults : [];
+          st.tyres = Array.isArray(st.tyres) ? st.tyres : [];
           st.lang = st.lang === 'en' ? 'en' : state.lang;
           state = st;
           save(true);
@@ -2232,6 +2571,7 @@ window.TYPE_TR = {
     $('#nav').innerHTML = `
       <button data-act="nav" data-page="today" class="${ui.page === 'today' ? 'active' : ''}">🏠 ${esc(t('navToday'))} <span class="badge" id="navBadge" style="display:${warn ? 'inline-block' : 'none'}">${warn}</span></button>
       <button data-act="nav" data-page="faults" class="${ui.page === 'faults' ? 'active' : ''}">🚨 ${esc(t('navFaults'))}</button>
+      <button data-act="nav" data-page="tyres" class="${ui.page === 'tyres' ? 'active' : ''}">🚗 ${esc(t('navTyres'))}</button>
       <button data-act="nav" data-page="history" class="${ui.page === 'history' ? 'active' : ''}">🕘 ${esc(t('navHistory'))}</button>
       <button data-act="nav" data-page="equipment" class="${ui.page === 'equipment' ? 'active' : ''}">🚜 ${esc(t('navEquipment'))}</button>
       <button data-act="nav" data-page="settings" class="${ui.page === 'settings' ? 'active' : ''}">⚙️ ${esc(t('navSettings'))}</button>`;
@@ -2248,6 +2588,7 @@ window.TYPE_TR = {
     renderChrome();
     if (ui.page === 'today') renderToday();
     else if (ui.page === 'faults') renderFaults();
+    else if (ui.page === 'tyres') renderTyres();
     else if (ui.page === 'history') renderHistory();
     else if (ui.page === 'equipment') renderEquipment();
     else renderSettings();
@@ -2350,6 +2691,11 @@ window.TYPE_TR = {
       case 'fault-hist': openFaultHistory(el.dataset.no); break;
       case 'export-faults': exportFaultsCsv(); break;
 
+      case 'add-tyre': openTyreModal(); break;
+      case 'edit-tyre': openTyreModal(el.dataset.id); break;
+      case 'del-tyre': confirmDeleteTyre(el.dataset.id); break;
+      case 'export-tyres': exportTyresCsv(); break;
+
       case 'add-eq': openAddEquipment(); break;
       case 'del-eq': confirmDeleteEquipment(el.dataset.no); break;
 
@@ -2417,6 +2763,8 @@ window.TYPE_TR = {
     if (el.id === 'todayType') { ui.type = el.value; renderTodayTable(); return; }
     if (el.id === 'eqType') { ui.eqType = el.value; renderEqTable(); return; }
     if (el.id === 'faultFilter') { ui.faultFilter = el.value; renderFaultTable(); return; }
+    if (el.id === 'tyreFrom') { ui.tyreFrom = el.value; renderTyreTable(); return; }
+    if (el.id === 'tyreTo') { ui.tyreTo = el.value; renderTyreTable(); return; }
     if (el.id === 'warnDays') {
       state.settings.warnDays = Math.min(30, Math.max(1, parseInt(el.value, 10) || 2));
       el.value = state.settings.warnDays;
@@ -2471,6 +2819,7 @@ window.TYPE_TR = {
     if (el.id === 'todaySearch') { ui.search = el.value; ui.refocus = 'todaySearch'; renderTodayTable(); return; }
     if (el.id === 'eqSearch') { ui.eqSearch = el.value; ui.refocus = 'eqSearch'; renderEqTable(); return; }
     if (el.id === 'faultSearch') { ui.faultSearch = el.value; ui.refocus = 'faultSearch'; renderFaultTable(); return; }
+    if (el.id === 'tyreSearch') { ui.tyreSearch = el.value; ui.refocus = 'tyreSearch'; renderTyreTable(); return; }
     if (el.id === 'histSearch') {
       ui.histSearch = el.value;
       ui.refocus = 'histSearch';
