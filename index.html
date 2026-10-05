@@ -1173,6 +1173,21 @@ window.TYPE_TR = {
   const addDays = (iso, n) => { const dt = new Date(parseISO(iso) + n * 86400000); return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate()); };
   const bi = (trStr, enStr) => (state.lang === 'en' ? enStr : trStr);
 
+  const PAGES = ['today', 'faults', 'tyres', 'history', 'equipment', 'settings'];
+  function rememberPage(p) {
+    try { localStorage.setItem('gunlukBakim.page', p); } catch (e) { /* yoksay */ }
+    if (location.hash.slice(1) !== p) history.replaceState(null, '', '#' + p);
+  }
+  function pageFromStart() {
+    const h = location.hash.slice(1);
+    if (PAGES.indexOf(h) !== -1) return h;
+    try {
+      const s = localStorage.getItem('gunlukBakim.page');
+      if (PAGES.indexOf(s) !== -1) return s;
+    } catch (e) { /* yoksay */ }
+    return 'today';
+  }
+
   function fmtDate(iso) {
     if (!iso) return '—';
     const p = iso.split('-');
@@ -2616,6 +2631,7 @@ window.TYPE_TR = {
       case 'nav':
         ui.page = el.dataset.page;
         ui.refocus = null;
+        rememberPage(ui.page);
         render();
         window.scrollTo({ top: 0 });
         break;
@@ -2860,9 +2876,20 @@ window.TYPE_TR = {
   });
 
   /* ================= başlat ================= */
+  window.addEventListener('hashchange', () => {
+    const p = location.hash.slice(1);
+    if (PAGES.indexOf(p) !== -1 && p !== ui.page) {
+      ui.page = p;
+      rememberPage(p);
+      render();
+      window.scrollTo({ top: 0 });
+    }
+  });
+
   function boot() {
     state = load();
     ui.date = todayISO();
+    ui.page = pageFromStart();
     render();
   }
   boot();
