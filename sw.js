@@ -1,7 +1,7 @@
 /* Günlük Bakım — Service Worker (çevrimdışı destek)
    Gezinmelerde önce ağ (her zaman güncel sürüm), çevrimdışıysa önbellek;
    diğer statik dosyalarda önce önbellek. */
-const CACHE = 'gunluk-bakim-v2';
+const CACHE = 'gunluk-bakim-v3';
 const SHELL = [
   './',
   './index.html',
@@ -9,13 +9,16 @@ const SHELL = [
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './gunluk-bakim-kaynak.zip'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
-      .then(cache => cache.addAll(SHELL))
+      .then(cache => Promise.all(SHELL.map(url =>
+        cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+      )))
       .then(() => self.skipWaiting())
   );
 });
@@ -35,7 +38,9 @@ self.addEventListener('fetch', event => {
   try { url = new URL(req.url); } catch (e) { return; }
   if (url.origin !== self.location.origin) return;
 
-  if (req.mode === 'navigate') {
+  /* gezinme + ZIP: önce ağ (her zaman güncel), çevrimdışıyken önbellek */
+  const isZip = url.pathname.endsWith('.zip');
+  if (req.mode === 'navigate' || isZip) {
     event.respondWith(
       fetch(req)
         .then(res => {
@@ -44,7 +49,7 @@ self.addEventListener('fetch', event => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then(m => m || caches.match('./index.html'))
+          caches.match(req).then(m => m || (isZip ? Response.error() : caches.match('./index.html')))
         )
     );
     return;
