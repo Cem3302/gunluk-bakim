@@ -194,6 +194,7 @@ textarea.input { resize: vertical; min-height: 60px; }
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  text-decoration: none;
 }
 .btn:hover { background: #f8fafc; }
 .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
@@ -759,6 +760,12 @@ window.I18N = {
     statRecords: 'Günlük kayıt',
     statVisits: 'Bakım ziyareti',
 
+    dlCardTitle: 'Kaynak ve uygulama indirme',
+    dlApp: 'Uygulamayı indir (HTML)',
+    dlSource: 'Kaynak kodları (ZIP)',
+    dlInfo: 'Uygulama tek dosya HTML olarak iner; indirdikten sonra çift tıklamanız yeterli. ZIP ise düzenlenebilir kaynak dosyaları (şablon, CSS, JS, build betiği) içerir.',
+    dlErr: 'İndirilemedi, tekrar deneyin.',
+
     faultsTitle: 'Günlük Arıza Takip Raporu',
     faultsSub: 'Sahadan gelen arıza bildirimlerini kaydedin; durumunu, çözüm süresini ve yapılan işlemleri takip edin.',
     faultsCount: '{n} arıza kaydı',
@@ -988,6 +995,12 @@ window.I18N = {
     statEquip: 'Equipment',
     statRecords: 'Daily records',
     statVisits: 'Maintenance visits',
+
+    dlCardTitle: 'Download app & source',
+    dlApp: 'Download app (HTML)',
+    dlSource: 'Source code (ZIP)',
+    dlInfo: 'The app downloads as a single HTML file — double-click to open. The ZIP contains the editable source files (template, CSS, JS, build script).',
+    dlErr: 'Download failed, please try again.',
 
     faultsTitle: 'Daily Fault Tracking Report',
     faultsSub: 'Log fault reports from the field; track status, resolution time and actions taken.',
@@ -2409,6 +2422,15 @@ window.TYPE_TR = {
           <button class="btn ghost-danger" data-act="clear-records">🗑 ${esc(t('clearRecords'))}</button>
         </div>
         <p class="hint" style="margin-bottom:0">${esc(t('storageInfo'))}<br>${esc(t('clearRecordsDesc'))}</p>
+      </div>
+
+      <div class="card">
+        <h2>📦 ${esc(t('dlCardTitle'))}</h2>
+        <div class="row">
+          <button class="btn" data-act="download-app">⬇ ${esc(t('dlApp'))}</button>
+          <a class="btn" href="gunluk-bakim-kaynak.zip" download="gunluk-bakim-kaynak.zip">⬇ ${esc(t('dlSource'))}</a>
+        </div>
+        <p class="hint" style="margin-bottom:0">${esc(t('dlInfo'))}</p>
       </div>`;
   }
 
@@ -2539,6 +2561,20 @@ window.TYPE_TR = {
     const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     downloadBlob(blob, 'gunluk-bakim_' + todayISO() + '.csv');
     toast(t('downloaded'), 'ok');
+  }
+
+  /* uygulamanın kendisini (tek dosya HTML) indir */
+  function downloadApp() {
+    fetch(location.pathname + '?dl=' + Date.now(), { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); })
+      .then(b => { downloadBlob(b, 'gunluk-bakim.html'); toast(t('downloaded'), 'ok'); })
+      .catch(() => {
+        try {
+          const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+          downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), 'gunluk-bakim.html');
+          toast(t('downloaded'), 'ok');
+        } catch (e) { toast(t('dlErr'), 'err'); }
+      });
   }
 
   function backupJson() {
@@ -2700,6 +2736,7 @@ window.TYPE_TR = {
       case 'export-csv': exportCsv(); break;
       case 'backup': backupJson(); break;
       case 'restore': restoreJson(); break;
+      case 'download-app': downloadApp(); break;
 
       case 'add-fault': openFaultModal(); break;
       case 'edit-fault': openFaultModal(el.dataset.id); break;
