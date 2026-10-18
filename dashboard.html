@@ -138,6 +138,42 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
 .ft .dot{ width:12px; height:12px; border-radius:4px; }
 .ft .src{ text-align:right; line-height:1.5; }
 .ft .src b{ color:#bfdbfe; }
+
+/* ---------- uyarı bandı + tüm makineler ---------- */
+.alert{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; padding:9px 16px;
+  border-radius:999px; border:1px solid; white-space:nowrap; }
+.alert.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.55);
+  animation:pulse 1.6s ease-in-out infinite; }
+.alert.green{ color:#bbf7d0; background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.45); }
+@keyframes pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(239,68,68,.5); } 50%{ box-shadow:0 0 0 8px rgba(239,68,68,0); } }
+@keyframes softPulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.55); } }
+
+.toolbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 18px 8px; }
+.chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.chipf{ font:inherit; font-size:12.5px; font-weight:800; padding:6px 12px; border-radius:999px; cursor:pointer;
+  background:#0a1223; color:var(--muted); border:1px solid var(--line); }
+.chipf.on{ background:#1d4ed8; color:#fff; border-color:#2563eb; }
+.chipf.on.c-overdue{ background:rgba(239,68,68,.2); color:#fca5a5; border-color:rgba(239,68,68,.6); }
+.chipf.on.c-warn{ background:rgba(245,158,11,.2); color:#fcd34d; border-color:rgba(245,158,11,.6); }
+.chipf.on.c-ok{ background:rgba(34,197,94,.18); color:#86efac; border-color:rgba(34,197,94,.55); }
+.pg{ font-size:13px; color:var(--muted); font-weight:700; white-space:nowrap; }
+.tbl tr.od td:first-child{ box-shadow:inset 3px 0 0 var(--red); }
+.chip.od{ animation:softPulse 1.5s ease-in-out infinite; }
+
+.overlay{ position:absolute; inset:0; background:var(--bg); z-index:50; display:flex; flex-direction:column;
+  padding:22px 28px; }
+.overlay[hidden]{ display:none; }
+.ov-head{ display:flex; align-items:center; gap:14px; padding-bottom:14px; border-bottom:1px solid var(--line); }
+.ov-head h2{ font-size:24px; font-weight:800; white-space:nowrap; }
+.ov-search{ width:320px; background:var(--panel); border:1px solid var(--line); color:var(--t);
+  font:inherit; font-size:15px; padding:10px 14px; border-radius:10px; margin-left:auto; }
+.ov-search:focus{ outline:none; border-color:var(--blue); }
+.ov-body{ flex:1; overflow-y:auto; padding-top:10px; min-height:0; }
+.ov-body::-webkit-scrollbar{ width:10px; }
+.ov-body::-webkit-scrollbar-thumb{ background:#24334f; border-radius:5px; }
+.ov-body .tbl th{ position:sticky; top:0; background:var(--bg); z-index:1; padding:10px 8px; }
+.ov-body .tbl td{ padding:7px 8px; font-size:14.5px; }
+.ov-body .tbl tr:hover td{ background:rgba(37,99,235,.08); }
 </style>
 </head>
 <body>
@@ -155,6 +191,8 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
       <div id="today">----</div>
     </div>
     <div class="hd-right">
+      <div class="alert red" id="alertBox">⚠ —</div>
+      <button class="btn-fs" id="btnList">☰ <span data-i="listBtn">Liste</span></button>
       <div class="seg">
         <button id="btnTR" class="on">TR</button>
         <button id="btnEN">EN</button>
@@ -178,7 +216,8 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
     </div>
 
     <div class="card">
-      <div class="ch"><h2 data-i="crit">En Kritik Makineler</h2><span class="hint" data-i="critHint"></span></div>
+      <div class="ch"><h2 data-i="crit">Tüm Makineler</h2><span class="hint" id="critHint"></span></div>
+      <div class="toolbar"><div class="chips" id="critChips"></div><div class="pg" id="critPg"></div></div>
       <div class="cb" id="crit"></div>
     </div>
 
@@ -203,6 +242,18 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
     </div>
     <div class="src" id="src"></div>
   </footer>
+
+  <!-- tüm makineler: tam liste (☰ Liste / L tuşu) -->
+  <div class="overlay" id="ovList" hidden>
+    <div class="ov-head">
+      <h2 data-i="listTitle">Tüm Makineler Listesi</h2>
+      <div class="chips" id="ovChips"></div>
+      <input class="ov-search" id="ovSearch" autocomplete="off">
+      <div class="pg" id="ovCount"></div>
+      <button class="btn-fs" id="btnOvClose">✕</button>
+    </div>
+    <div class="ov-body" id="ovBody"></div>
+  </div>
 </div>
 
 <script>
@@ -217,7 +268,10 @@ const L = {
     dated: 'Bakım Tarihi Olan', datedNote: 'tarihli bakım kaydı',
     recent30: 'Son 30 Günde Bakım', recent30Note: 'bakım tarihi son 30 gün içinde',
     groups: 'Grup Bazlı Durum', locs: 'Lokasyon Dağılımı', locsNote: 'kayıtlı {n} lokasyon',
-    crit: 'En Kritik Makineler', critHint: 'kalan km/saat — küçükten büyüğe',
+    crit: 'Tüm Makineler', critHint: 'kritikten normale sırayla otomatik döner',
+    all: 'Tümü', page: 'Sayfa {a} / {b}', listBtn: 'Liste', listTitle: 'Tüm Makineler Listesi',
+    searchPh: 'Kod / grup / lokasyon ara…', noMatch: 'Sonuç yok',
+    alertOverdue: '{n} gecikmiş makine var!', alertOk: 'Gecikmiş makine yok',
     durumT: 'Durum Dağılımı', recent: 'Son Bakım Kayıtları',
     cCode: 'Kod', cGroup: 'Grup', cMevcut: 'Mevcut', cKalan: 'Kalan', cStatus: 'Durum',
     cDate: 'Tarih', cLocation: 'Lokasyon',
@@ -231,7 +285,10 @@ const L = {
     dated: 'With Maintenance Date', datedNote: 'machines with a dated record',
     recent30: 'Serviced in Last 30 Days', recent30Note: 'maintenance date within 30 days',
     groups: 'Status by Group', locs: 'By Location', locsNote: '{n} locations recorded',
-    crit: 'Most Critical Machines', critHint: 'remaining km/hours — ascending',
+    crit: 'All Machines', critHint: 'auto-rotates from critical to on-track',
+    all: 'All', page: 'Page {a} / {b}', listBtn: 'List', listTitle: 'All Machines List',
+    searchPh: 'Search code / group / location…', noMatch: 'No results',
+    alertOverdue: '{n} overdue machines!', alertOk: 'No overdue machines',
     durumT: 'Status Split', recent: 'Recent Maintenance',
     cCode: 'Code', cGroup: 'Group', cMevcut: 'Current', cKalan: 'Remaining', cStatus: 'Status',
     cDate: 'Date', cLocation: 'Location',
@@ -311,7 +368,8 @@ const S = (() => {
     const iv = Math.max(1, sonraki - son);
     crit.push({
       code: pick(r, 'Filo Kodu'), sheet: x.sheet, unit: x.unit, mevcut: num(r, 'Mevcut'),
-      kalan: kalan, st: stt, pct: kalan <= 0 ? 100 : Math.max(3, Math.min(100, Math.round((kalan / iv) * 100)))
+      kalan: kalan, st: stt, date: date, loc: loc,
+      pct: kalan <= 0 ? 100 : Math.max(3, Math.min(100, Math.round((kalan / iv) * 100)))
     });
   });
 
@@ -321,7 +379,7 @@ const S = (() => {
   const locList = Object.keys(locs).map(k => ({ name: k, n: locs[k] })).sort((a, b) => b.n - a.n);
   return Object.assign(st, {
     perSheet: SHEETS.map(sh => perSheet[sh.name]).filter(Boolean),
-    locList: locList, crit: crit.slice(0, 12), recent: recent.slice(0, 9)
+    locList: locList, all: crit, recent: recent.slice(0, 9)
   });
 })();
 
@@ -380,25 +438,98 @@ function renderLocs() {
   ).join('');
 }
 
+/* ===== tüm makineler: sayfalama + filtre + otomatik dönüş ===== */
+const PER = 12;
+let pageIdx = 0, fStatus = 'all', ovStatus = 'all', ovQuery = '', rotTimer = null;
+
+function listFor(status) { return status === 'all' ? S.all : S.all.filter(r => r.st === status); }
+
+function chipsHtml(status, scope) {
+  const opts = [
+    ['all', t('all'), S.total, ''],
+    ['overdue', statusLabel('overdue'), S.overdue, 'c-overdue'],
+    ['warn', statusLabel('warn'), S.warn, 'c-warn'],
+    ['ok', statusLabel('ok'), S.ok, 'c-ok']
+  ];
+  return opts.map(o =>
+    '<button class="chipf ' + o[3] + (status === o[0] ? ' on' : '') + '" data-chip="' + o[0] +
+    '" data-scope="' + scope + '">' + esc(o[1]) + ' · ' + fmt(o[2]) + '</button>').join('');
+}
+
+function critRow(x, withBar) {
+  return '<tr class="' + (x.st === 'overdue' ? 'od' : '') + '">' +
+    '<td class="code">' + esc(x.code) + '</td>' +
+    '<td class="grp">' + esc(sheetLabel(x.sheet.name)) + '</td>' +
+    (withBar ? '<td class="num">' + fmt(x.mevcut) + '<span class="unit">' + x.unit + '</span></td>' +
+      '<td class="barcell"><div class="rbar"><b class="' + x.st + '" style="width:' + x.pct + '%"></b></div></td>' : '') +
+    '<td class="kalan ' + x.st + '">' + fmt(x.kalan) + '<span class="unit">' + x.unit + '</span></td>' +
+    '<td style="text-align:right"><span class="chip ' + x.st + (x.st === 'overdue' ? ' od' : '') + '">' + esc(statusLabel(x.st)) + '</span></td>' +
+  '</tr>';
+}
+
 function renderCrit() {
   const el = document.getElementById('crit');
-  if (!S.crit.length) { el.innerHTML = '<div class="muted">' + esc(t('empty')) + '</div>'; return; }
-  const rows = S.crit.map(x =>
-    '<tr>' +
-      '<td class="code">' + esc(x.code) + '</td>' +
-      '<td class="grp">' + esc(sheetLabel(x.sheet.name)) + '</td>' +
-      '<td class="num">' + fmt(x.mevcut) + '<span class="unit">' + x.unit + '</span></td>' +
-      '<td class="barcell"><div class="rbar"><b class="' + x.st + '" style="width:' + x.pct + '%"></b></div></td>' +
-      '<td class="kalan ' + x.st + '">' + fmt(x.kalan) + '<span class="unit">' + x.unit + '</span></td>' +
-      '<td style="text-align:right"><span class="chip ' + x.st + '">' + esc(statusLabel(x.st)) + '</span></td>' +
-    '</tr>'
-  ).join('');
+  const list = listFor(fStatus);
+  const pages = Math.max(1, Math.ceil(list.length / PER));
+  if (pageIdx >= pages) pageIdx = 0;
+  const slice = list.slice(pageIdx * PER, pageIdx * PER + PER);
+  document.getElementById('critChips').innerHTML = chipsHtml(fStatus, 'main');
+  document.getElementById('critHint').textContent = t('critHint');
+  document.getElementById('critPg').textContent =
+    t('page', { a: pageIdx + 1, b: pages }) + ' · ' + fmt(list.length) + ' ' + t('machines');
+  if (!slice.length) { el.innerHTML = '<div class="muted">' + esc(t('empty')) + '</div>'; return; }
   el.innerHTML = '<table class="tbl"><thead><tr>' +
     '<th>' + esc(t('cCode')) + '</th><th>' + esc(t('cGroup')) + '</th>' +
     '<th style="text-align:right">' + esc(t('cMevcut')) + '</th><th></th>' +
     '<th style="text-align:right">' + esc(t('cKalan')) + '</th>' +
     '<th style="text-align:right">' + esc(t('cStatus')) + '</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
+    '</tr></thead><tbody>' + slice.map(x => critRow(x, true)).join('') + '</tbody></table>';
+}
+
+function setRot(on) {
+  clearInterval(rotTimer); rotTimer = null;
+  if (on) rotTimer = setInterval(() => { pageIdx++; renderCrit(); }, 6500);
+}
+
+/* ===== tam liste (overlay) — ⌂ Liste düğmesi veya L tuşu ===== */
+function renderOv() {
+  const host = document.getElementById('ovChips');
+  if (!host) return;
+  host.innerHTML = chipsHtml(ovStatus, 'ov');
+  document.getElementById('ovSearch').placeholder = t('searchPh');
+  let list = listFor(ovStatus);
+  const q = ovQuery.trim().toLowerCase();
+  if (q) list = list.filter(x =>
+    (x.code + ' ' + sheetLabel(x.sheet.name) + ' ' + (x.loc || '') + ' ' + (x.date || '')).toLowerCase().indexOf(q) >= 0);
+  document.getElementById('ovCount').textContent = fmt(list.length) + ' ' + t('machines');
+  const body = document.getElementById('ovBody');
+  if (!list.length) { body.innerHTML = '<div class="muted">' + esc(t('noMatch')) + '</div>'; return; }
+  body.innerHTML = '<table class="tbl"><thead><tr>' +
+    '<th>' + esc(t('cCode')) + '</th><th>' + esc(t('cGroup')) + '</th>' +
+    '<th>' + esc(t('cDate')) + '</th><th>' + esc(t('cLocation')) + '</th>' +
+    '<th style="text-align:right">' + esc(t('cMevcut')) + '</th>' +
+    '<th style="text-align:right">' + esc(t('cKalan')) + '</th>' +
+    '<th style="text-align:right">' + esc(t('cStatus')) + '</th></tr></thead><tbody>' +
+    list.map(x => {
+      const base = '<tr class="' + (x.st === 'overdue' ? 'od' : '') + '">' +
+        '<td class="code">' + esc(x.code) + '</td>' +
+        '<td class="grp">' + esc(sheetLabel(x.sheet.name)) + '</td>' +
+        '<td class="num">' + esc(x.date || '—') + '</td>' +
+        '<td class="grp">' + esc(x.loc || '—') + '</td>' +
+        '<td class="num">' + fmt(x.mevcut) + '<span class="unit">' + x.unit + '</span></td>' +
+        '<td class="kalan ' + x.st + '">' + fmt(x.kalan) + '<span class="unit">' + x.unit + '</span></td>' +
+        '<td style="text-align:right"><span class="chip ' + x.st + (x.st === 'overdue' ? ' od' : '') + '">' + esc(statusLabel(x.st)) + '</span></td>' +
+      '</tr>';
+      return base;
+    }).join('') +
+    '</tbody></table>';
+}
+
+/* ===== uyarı bandı ===== */
+function renderAlert() {
+  const box = document.getElementById('alertBox');
+  if (S.overdue > 0) { box.className = 'alert red'; box.textContent = '⚠ ' + t('alertOverdue', { n: fmt(S.overdue) }); }
+  else { box.className = 'alert green'; box.textContent = '✓ ' + t('alertOk'); }
 }
 
 function renderDonut() {
@@ -450,6 +581,8 @@ function renderStatic() {
 
 function renderAll() {
   renderStatic(); renderKpis(); renderGroups(); renderLocs(); renderCrit(); renderDonut(); renderRecent();
+  renderAlert();
+  if (!document.getElementById('ovList').hidden) renderOv();
 }
 
 /* ===== ölçek (16:9) ===== */
@@ -468,6 +601,23 @@ function tick() {
 }
 
 /* ===== olaylar ===== */
+const ovListEl = document.getElementById('ovList');
+function openList() {
+  ovListEl.hidden = false;
+  document.getElementById('ovSearch').value = ''; ovQuery = '';
+  renderOv(); setRot(false);
+}
+function closeList() { ovListEl.hidden = true; setRot(true); }
+document.getElementById('btnList').addEventListener('click', () => { ovListEl.hidden ? openList() : closeList(); });
+document.getElementById('btnOvClose').addEventListener('click', closeList);
+document.getElementById('ovSearch').addEventListener('input', e => { ovQuery = e.target.value; renderOv(); });
+document.addEventListener('click', e => {
+  const c = e.target.closest && e.target.closest('[data-chip]');
+  if (!c) return;
+  if (c.dataset.scope === 'ov') { ovStatus = c.dataset.chip; renderOv(); }
+  else { fStatus = c.dataset.chip; pageIdx = 0; renderCrit(); }
+});
+
 document.getElementById('btnTR').addEventListener('click', () => { LANG = 'tr'; setLangBtn(); renderAll(); tick(); });
 document.getElementById('btnEN').addEventListener('click', () => { LANG = 'en'; setLangBtn(); renderAll(); tick(); });
 function setLangBtn() {
@@ -479,12 +629,17 @@ document.getElementById('btnFs').addEventListener('click', () => {
   else document.documentElement.requestFullscreen().catch(() => {});
 });
 document.addEventListener('keydown', e => {
+  const inInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+  if (e.key === 'Escape' && !ovListEl.hidden) { closeList(); return; }
+  if (inInput) return;
   if (e.key === 'f' || e.key === 'F') document.getElementById('btnFs').click();
+  if (e.key === 'l' || e.key === 'L') { ovListEl.hidden ? openList() : closeList(); }
 });
 
 fit();
 renderAll();
 tick();
+setRot(true);
 setInterval(tick, 1000);
 </script>
 </body>
