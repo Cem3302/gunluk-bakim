@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Periyodik Bakım Panosu — 16:9</title>
+<meta name="theme-color" content="#0a1120">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 /* Periyodik Bakım — 16:9 duvar/TV panosu (tasarım: 1920x1080, ekrana otomatik ölçeklenir) */
 :root{
@@ -189,6 +192,89 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
 .dropveil .dv{ border:3px dashed var(--blue); border-radius:22px; padding:48px 76px; text-align:center;
   font-size:27px; font-weight:800; color:#bfdbfe; background:rgba(37,99,235,.12); }
 .dropveil .dv small{ display:block; font-size:15px; color:var(--muted); font-weight:600; margin-top:12px; letter-spacing:.3px; }
+
+/* ---------- Mobil / tablet dikey (≤900px): ölçekli pano yerine akış düzeni ---------- */
+@media (max-width:900px){
+  html,body{ height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto;
+    -webkit-text-size-adjust:100%; }
+  body.ov-open{ overflow:hidden; }
+  #stage{ position:static; transform:none; left:auto; top:auto; width:auto; height:auto;
+    display:flex; flex-direction:column; gap:12px; padding:12px; overflow:visible; }
+
+  /* başlık: marka + saat üst satır; uyarı bandı ve düğmeler altta sarılır */
+  .hd{ flex-wrap:wrap; gap:10px; padding-bottom:10px; }
+  .brand{ gap:10px; }
+  .brand .ico{ width:40px; height:40px; font-size:21px; border-radius:11px; }
+  .brand h1{ font-size:18px; } .brand .sub{ font-size:11.5px; margin-top:1px; }
+  .clock{ margin-left:auto; text-align:right; }
+  .clock #time{ font-size:26px; letter-spacing:1px; }
+  .clock #today{ font-size:11px; }
+  .hd-right{ width:100%; flex-wrap:wrap; gap:8px; }
+  .alert{ flex:1 1 100%; white-space:normal; font-size:13.5px; padding:9px 13px; }
+  .btn-fs{ font-size:13.5px; padding:10px 13px; min-height:42px; }
+  #btnFs{ display:none; } /* telefonda tam ekran düğmesi anlamsız */
+  .seg button{ font-size:13.5px; padding:10px 14px; min-height:42px; }
+
+  /* KPI: 2 sütun */
+  .kpis{ grid-template-columns:repeat(2,1fr); gap:10px; }
+  .kpi{ border-radius:12px; padding:12px 12px 12px 15px; }
+  .kpi .lab{ font-size:10.5px; letter-spacing:.6px; }
+  .kpi .val{ font-size:30px; margin-top:3px; }
+  .kpi .note{ font-size:11px; margin-top:2px; }
+
+  /* kartlar alt alta; makineler listesi en üste */
+  .mid{ display:flex; flex-direction:column; gap:12px; }
+  .mid > .col{ gap:12px; }
+  .mid > .col:first-child{ order:2; }
+  .mid > .card{ order:1; }
+  .mid > .col:last-child{ order:3; }
+  .card{ border-radius:12px; }
+  .cb{ overflow:visible; padding:0 12px 12px; }
+  .ch{ padding:12px 13px 8px; } .ch h2{ font-size:14.5px; } .ch .hint{ font-size:11px; }
+  .toolbar{ flex-wrap:wrap; padding:0 12px 8px; gap:6px; }
+  .chipf{ font-size:12.5px; padding:8px 12px; min-height:36px; }
+
+  /* makineler tablosu: Kod / Kalan / Durum sütunları */
+  .tbl th{ padding:7px 6px; font-size:11px; }
+  .tbl td{ padding:7px 6px; font-size:13.5px; }
+  #crit th:nth-child(2), #crit td:nth-child(2),
+  #crit th:nth-child(3), #crit td:nth-child(3),
+  #crit th:nth-child(4), #crit td:nth-child(4){ display:none; }
+
+  /* lokasyonlar, gruplar, halka, son bakımlar */
+  .loc-row{ grid-template-columns:96px 1fr 40px; gap:8px; margin-bottom:9px; }
+  .l-name{ font-size:12.5px; } .l-val{ font-size:12.5px; }
+  .g-name{ font-size:13.5px; } .g-nums{ font-size:11px; gap:10px; }
+  .donutwrap{ flex-wrap:wrap; justify-content:center; gap:12px; }
+  .donutwrap svg{ width:130px; height:130px; }
+  .dn-legend .li{ font-size:13px; gap:8px; }
+  .r-row{ display:flex; flex-wrap:wrap; gap:2px 10px; padding:7px 2px; font-size:13px; }
+  .r-grp{ width:100%; text-align:left; font-size:11.5px; }
+
+  /* alt bilgi */
+  .ft{ flex-direction:column; align-items:flex-start; gap:8px; padding-top:10px; font-size:12px; }
+  .ft .legend{ flex-wrap:wrap; gap:10px; }
+  .ft .src{ text-align:left; }
+
+  /* tam liste katmanı, bırakma örtüsü ve bildirim ekrana sabit */
+  .overlay{ position:fixed;
+    padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)); }
+  .ov-head{ position:relative; flex-wrap:wrap; gap:8px; padding-bottom:10px; }
+  .ov-head h2{ font-size:16px; width:calc(100% - 56px); white-space:normal; }
+  #btnOvClose{ position:absolute; right:0; top:0; min-height:40px; }
+  #ovChips{ order:2; width:100%; }
+  .ov-search{ width:100%; order:3; margin-left:0; font-size:15px; padding:11px 13px; }
+  #ovCount{ font-size:12px; }
+  .ov-body{ overflow:auto; -webkit-overflow-scrolling:touch; }
+  #ovBody th:nth-child(2), #ovBody td:nth-child(2),
+  #ovBody th:nth-child(5), #ovBody td:nth-child(5){ display:none; }
+  .dropveil{ position:fixed; }
+  .dropveil .dv{ font-size:18px; padding:26px 22px; border-radius:16px; margin:0 12px; }
+  .dropveil .dv small{ font-size:12.5px; margin-top:8px; }
+  .toastX{ position:fixed; left:12px; right:12px; bottom:calc(14px + env(safe-area-inset-bottom));
+    transform:none; max-width:none; font-size:14px; padding:11px 16px; }
+  .toastX.show{ transform:none; }
+}
 </style>
 </head>
 <body>
@@ -943,6 +1029,7 @@ function renderLocs() {
 /* ===== tüm makineler: sayfalama + filtre + otomatik dönüş ===== */
 const PER = 12;
 let pageIdx = 0, fStatus = 'all', ovStatus = 'all', ovQuery = '', rotTimer = null;
+let rotOn = true, lastMob = null; /* mobilde otomatik sayfa dönüşü kapalı */
 
 function listFor(status) { return status === 'all' ? S.all : S.all.filter(r => r.st === status); }
 
@@ -989,8 +1076,9 @@ function renderCrit() {
 }
 
 function setRot(on) {
+  rotOn = on;
   clearInterval(rotTimer); rotTimer = null;
-  if (on) rotTimer = setInterval(() => { pageIdx++; renderCrit(); }, 6500);
+  if (on && !mqMobile.matches) rotTimer = setInterval(() => { pageIdx++; renderCrit(); }, 6500);
 }
 
 /* ===== tam liste (overlay) — ⌂ Liste düğmesi veya L tuşu ===== */
@@ -1238,11 +1326,19 @@ document.addEventListener('drop', e => {
   if (f) loadExcelFile(f);
 });
 
-/* ===== ölçek (16:9) ===== */
+/* ===== ölçek (16:9) — mobilde (≤900px) ölçekleme yok, normal akış ===== */
+const mqMobile = window.matchMedia('(max-width:900px)');
+const stageEl = document.getElementById('stage');
 function fit() {
-  const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-  /* panel 0 ölçüne düştüğünde son geçerli ölçeği koru (yoksa pano kaybolur) */
-  if (s > 0) document.getElementById('stage').style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  const mob = mqMobile.matches;
+  if (mob) stageEl.style.transform = '';
+  else {
+    const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    /* panel 0 ölçüne düştüğünde son geçerli ölçeği koru (yoksa pano kaybolur) */
+    if (s > 0) stageEl.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  if (lastMob !== null && lastMob !== mob) setRot(rotOn); /* moda geçince dönüş durumunu yenile */
+  lastMob = mob;
 }
 window.addEventListener('resize', fit);
 
@@ -1259,10 +1355,11 @@ function tick() {
 const ovListEl = document.getElementById('ovList');
 function openList() {
   ovListEl.hidden = false;
+  document.body.classList.add('ov-open'); /* mobilde arka plan kaydırmasın */
   document.getElementById('ovSearch').value = ''; ovQuery = '';
   renderOv(); setRot(false);
 }
-function closeList() { ovListEl.hidden = true; setRot(true); }
+function closeList() { ovListEl.hidden = true; document.body.classList.remove('ov-open'); setRot(true); }
 document.getElementById('btnList').addEventListener('click', () => { ovListEl.hidden ? openList() : closeList(); });
 document.getElementById('btnOvClose').addEventListener('click', closeList);
 document.getElementById('ovSearch').addEventListener('input', e => { ovQuery = e.target.value; renderOv(); });
