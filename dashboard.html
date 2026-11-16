@@ -36,6 +36,17 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
   color:#dbeafe; text-shadow:0 0 22px rgba(59,130,246,.45); }
 .clock #today{ color:var(--muted); font-size:15px; margin-top:2px; }
 .hd-right{ display:flex; align-items:center; gap:12px; }
+/* canlı senkron rozeti (periyodikbakim.abacusai.app) */
+.live{ display:flex; align-items:center; gap:8px; border:1px solid var(--line); background:var(--panel2);
+  border-radius:10px; padding:8px 13px; font-size:13px; font-weight:700; color:var(--muted); white-space:nowrap; }
+.live .ld{ width:9px; height:9px; border-radius:50%; background:var(--slate); box-shadow:0 0 0 3px rgba(100,116,139,.18); }
+.live.ok{ color:#bbf7d0; border-color:rgba(34,197,94,.45); }
+.live.ok .ld{ background:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.2); animation:livePulse 2.4s ease-in-out infinite; }
+.live.stale{ color:#fde68a; border-color:rgba(245,158,11,.45); }
+.live.stale .ld{ background:var(--amber); box-shadow:0 0 0 3px rgba(245,158,11,.2); }
+.live.off{ color:#fecaca; border-color:rgba(239,68,68,.45); }
+.live.off .ld{ background:var(--red); box-shadow:0 0 0 3px rgba(239,68,68,.2); }
+@keyframes livePulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
 .seg{ display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel2); }
 .seg button{ border:0; background:transparent; color:var(--muted); font:inherit; font-weight:700; font-size:14px;
   padding:9px 16px; cursor:pointer; }
@@ -292,6 +303,7 @@ html,body{ height:100%; background:#05080f; overflow:hidden; font-family:system-
       <div id="today">----</div>
     </div>
     <div class="hd-right">
+      <div class="live" id="liveBadge"><span class="ld"></span><span id="liveTxt">…</span></div>
       <div class="alert red" id="alertBox">⚠ —</div>
       <button class="btn-fs" id="btnXls">📊 <span data-i="xlsBtn">Excel</span></button>
       <button class="btn-fs" id="btnReset" hidden>↺ <span data-i="xlsReset">Varsayılan</span></button>
@@ -850,7 +862,9 @@ const L = {
     dropText: 'Excel dosyasını buraya bırak', dropSub: '.xlsx veya .csv — pano anında güncellenir',
     errNotXlsx: 'bu bir .xlsx dosyası değil', errNoSheets: 'sayfa bulunamadı',
     errNoRows: 'makine satırı bulunamadı (1. satır başlık, B sütunu kod olmalı)',
-    errBrowser: 'tarayıcı sıkıştırmayı açamıyor', errBad: 'dosya bozuk görünüyor'
+    errBrowser: 'tarayıcı sıkıştırmayı açamıyor', errBad: 'dosya bozuk görünüyor',
+    liveOn: 'Canlı', liveWait: 'Bağlanıyor…', liveOff: 'Çevrimdışı', liveStale: 'Gecikmeli',
+    liveLocal: 'Yerel dosya', liveSrc: 'Kaynak: periyodikbakim.abacusai.app (canlı senkron)'
   },
   en: {
     title: 'Periodic Maintenance Dashboard', sub: 'Fleet maintenance status · 16:9 screen board', fullscreen: 'Fullscreen',
@@ -874,7 +888,9 @@ const L = {
     dropText: 'Drop the Excel file here', dropSub: '.xlsx or .csv — the board updates instantly',
     errNotXlsx: 'this is not an .xlsx file', errNoSheets: 'no sheets found',
     errNoRows: 'no machine rows found (row 1 = header, column B = code)',
-    errBrowser: 'browser cannot decompress archives', errBad: 'file looks corrupt'
+    errBrowser: 'browser cannot decompress archives', errBad: 'file looks corrupt',
+    liveOn: 'Live', liveWait: 'Connecting…', liveOff: 'Offline', liveStale: 'Delayed',
+    liveLocal: 'Local file', liveSrc: 'Source: periyodikbakim.abacusai.app (live sync)'
   }
 };
 const SHEET_TR = { 'Heavy Truck': 'Ağır Vasıta', 'Light Vehicle': 'Hafif Araç', 'Heavy Equipment': 'Ağır Makine', 'Light Equipment': 'Hafif Makine' };
@@ -1275,7 +1291,7 @@ function applyData(newData, persist) {
   pageIdx = 0; fStatus = 'all'; ovStatus = 'all'; ovQuery = '';
   const si = document.getElementById('ovSearch');
   if (si) si.value = '';
-  btnReset.hidden = (DATA === EMBEDDED);
+  syncResetBtn();
   renderAll();
   if (persist) { try { localStorage.setItem(LS_KEY, JSON.stringify(newData)); } catch (e) { } }
 }
@@ -1286,7 +1302,9 @@ async function loadExcelFile(file) {
   try {
     const buf = await file.arrayBuffer();
     const nd = await workbookToData(buf, file.name);
+    liveOn = false; /* canlı senkron duraklar; ↺ Varsayılan ile geri dönülür */
     applyData(nd, true);
+    setLiveBadge();
     toast('✓ ' + t('xlsOk', { f: nd.source, n: fmt(S.total) }), 'ok');
   } catch (e) {
     console.error('Excel yükleme hatası:', e);
@@ -1302,7 +1320,9 @@ xlsFileEl.addEventListener('change', e => {
 });
 btnReset.addEventListener('click', () => {
   try { localStorage.removeItem(LS_KEY); } catch (err) { }
-  applyData(EMBEDDED, false);
+  liveOn = true;
+  applyData(live.board || EMBEDDED, false); /* canlı veri varsa ona dön */
+  setLiveBadge();
   toast('✓ ' + t('xlsDefault'), 'ok');
 });
 
@@ -1345,6 +1365,7 @@ window.addEventListener('resize', fit);
 /* ===== saat ===== */
 function tick() {
   fit(); /* pencere ölçüsü sonradan değişirse pano ~1 sn içinde kendini düzeltir */
+  setLiveBadge(); /* "canlı / gecikmeli / çevrimdışı" durumu tazelenir */
   const d = new Date(), p = n => String(n).padStart(2, '0');
   document.getElementById('time').textContent = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
   document.getElementById('today').textContent = d.toLocaleDateString(LANG === 'en' ? 'en-GB' : 'tr-TR',
@@ -1389,6 +1410,158 @@ document.addEventListener('keydown', e => {
   if (e.key === 'e' || e.key === 'E') document.getElementById('btnXls').click();
 });
 
+/* ===== canlı senkron: periyodikbakim.abacusai.app =====
+   Abacus uygulaması CORS başlığı göndermediği için tarayıcı API'yi doğrudan okuyamaz.
+   .github/workflows/live-sync.yml her 5 dakikada API'yi çekip Firebase'e yazar;
+   pano SSE ile ANINDA, ayrıca 5 dakikada bir REST ile yedekten okur. */
+const LIVE_URL = 'https://pemba-bakim-default-rtdb.europe-west1.firebasedatabase.app/gunluk/board.json';
+const LIVE_FRESH_MS = 12 * 60 * 1000; /* bundan eski veri "gecikmeli" sayılır */
+let liveOn = true;                    /* false: kullanıcı kendi Excel dosyasını yükledi */
+const live = { board: null, at: 0, sig: '', err: false };
+const liveBadgeEl = document.getElementById('liveBadge');
+const liveTxtEl = document.getElementById('liveTxt');
+
+/* "Varsayılan" düğmesi yalnızca canlı senkron duraklatıldığında (yerel dosya) görünür */
+function syncResetBtn() { btnReset.hidden = !!liveOn; }
+
+/* abacusai.app kategori tanımları (uygulamadaki eşiklerle birebir) */
+const LIVE_CATS = [
+  { key: 'heavyTruck', name: 'Heavy Truck', unit: 'KM', thr: 1000 },
+  { key: 'lightVehicle', name: 'Light Vehicle', unit: 'KM', thr: 1000 },
+  { key: 'heavyEquipment', name: 'Heavy Equipment', unit: 'Saat', thr: 50 },
+  { key: 'lightEquipment', name: 'Light Equipment', unit: 'Saat', thr: 50 }
+];
+
+function liveDur(rem, thr) { return rem <= 0 ? 'Gecikmiş' : (rem <= thr ? 'Uyarı' : 'Normal'); }
+
+/* iş "YYYY-AA-GG ss:dd" (UTC) yazar; panoda yerel saat gösterilir */
+function liveLocalTime(s) {
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return s;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+  if (isNaN(d.getTime())) return s;
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* API satırları → panonun sayfa/satır biçimi */
+function liveSheets(api) {
+  const out = [];
+  LIVE_CATS.forEach(c => {
+    const list = (api && Array.isArray(api[c.key])) ? api[c.key].filter(r => r && r.fleetCode) : [];
+    if (!list.length) return;
+    const km = c.unit === 'KM';
+    const headers = km
+      ? ['S.No', 'Filo Kodu', 'Son Bakım (KM)', 'Sonraki Bakım (KM)', 'Mevcut (KM)', 'Kalan (KM)', 'Durum', 'Bakım Tarihi', 'Lokasyon', 'Kullanılan Filtreler']
+      : ['S.No', 'Filo Kodu', 'Bakım Tipi', 'Son Bakım (Saat)', 'Sonraki Bakım (Saat)', 'Mevcut (Saat)', 'Kalan (Saat)', 'Durum', 'Bakım Tarihi', 'Lokasyon', 'Kullanılan Filtreler'];
+    const rows = list.map((r, i) => {
+      const rem = Number(r.remaining) || 0;
+      const o = Object.create(null);
+      o['S.No'] = (r.sno === null || r.sno === undefined || r.sno === '') ? (i + 1) : r.sno;
+      o['Filo Kodu'] = r.fleetCode || '';
+      if (!km) o['Bakım Tipi'] = r.serviceType || '';
+      o['Son Bakım (' + c.unit + ')'] = (km ? r.serviceKm : r.serviceHours) || 0;
+      o['Sonraki Bakım (' + c.unit + ')'] = (km ? r.nextServiceKm : r.nextServiceHours) || 0;
+      o['Mevcut (' + c.unit + ')'] = (km ? r.currentKm : r.currentHours) || 0;
+      o['Kalan (' + c.unit + ')'] = rem;
+      o['Durum'] = liveDur(rem, c.thr);
+      o['Bakım Tarihi'] = r.serviceDate || '';
+      o['Lokasyon'] = r.location || '';
+      o['Kullanılan Filtreler'] = r.filters || '';
+      return o;
+    });
+    out.push({ name: c.name, headers: headers, count: rows.length, rows: rows });
+  });
+  return out;
+}
+
+/* ham API gövdesi, {at,data} zarfı ya da hazır {sheets:[...]} kabul edilir */
+function liveBoard(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const src = (raw.data && typeof raw.data === 'object') ? raw.data : raw;
+  let sheets = [];
+  if (Array.isArray(src.sheets)) {
+    sheets = src.sheets.filter(s => s && Array.isArray(s.rows) && s.rows.length);
+  } else {
+    sheets = liveSheets(src);
+  }
+  if (!sheets.length) return null;
+  return {
+    source: raw.source || 'periyodikbakim.abacusai.app',
+    generated: liveLocalTime(raw.at || raw.generated || ''),
+    live: true,
+    sheets: sheets
+  };
+}
+
+function sigOf(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h; }
+
+function applyLiveBoard(b) {
+  DATA = b;
+  recompute();
+  syncResetBtn();
+  renderAll();
+}
+
+function onLive(raw) {
+  const b = liveBoard(raw);
+  if (!b) return;
+  const sig = String(sigOf(JSON.stringify(b)));
+  const changed = sig !== live.sig;
+  live.board = b; live.sig = sig; live.at = Date.now(); live.err = false;
+  if (liveOn && changed) applyLiveBoard(b);
+  setLiveBadge();
+}
+
+function setLiveBadge() {
+  if (!liveBadgeEl || !liveTxtEl) return;
+  let cls = '', txt = t('liveWait');
+  if (!liveOn) { txt = t('liveLocal'); }
+  else if (!live.at) { cls = live.err ? 'off' : ''; txt = live.err ? t('liveOff') : t('liveWait'); }
+  else {
+    const d = new Date(live.at), p = n => String(n).padStart(2, '0');
+    const hhmm = p(d.getHours()) + ':' + p(d.getMinutes());
+    const fresh = (Date.now() - live.at) < LIVE_FRESH_MS;
+    /* kısa kopmalarda alarm yok: veri tazeyse rozet yeşil kalır */
+    if (fresh) { cls = 'ok'; txt = t('liveOn') + ' · ' + hhmm; }
+    else { cls = 'stale'; txt = t('liveStale') + ' · ' + hhmm; }
+  }
+  liveBadgeEl.className = 'live' + (cls ? ' ' + cls : '');
+  liveTxtEl.textContent = txt;
+  liveBadgeEl.title = t('liveSrc');
+}
+
+async function pullLive() {
+  try {
+    const r = await fetch(LIVE_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('http ' + r.status);
+    onLive(await r.json());
+    live.err = false;
+  } catch (e) {
+    live.err = true;
+  }
+  setLiveBadge();
+}
+
+function startLive() {
+  try {
+    if (typeof EventSource === 'function') {
+      const es = new EventSource(LIVE_URL);
+      es.addEventListener('put', ev => {
+        let d = null;
+        try { d = JSON.parse(ev.data); } catch (e) { return; }
+        if (d && d.data) { live.err = false; onLive(d.data); }
+      });
+      /* Firebase değeri silinirse panoyu boşaltma, son iyi veri kalsın */
+      es.addEventListener('patch', () => pullLive()); /* parçalı güncelleme → REST ile tazele */
+      es.onopen = () => { live.err = false; setLiveBadge(); };
+      es.onerror = () => { live.err = true; setLiveBadge(); }; /* EventSource kendisi yeniden bağlanır */
+    }
+  } catch (e) { }
+  pullLive();                          /* ilk yükleme + SSE yoksa yedek */
+  setInterval(pullLive, 5 * 60 * 1000);
+}
+
 /* kayıtlı (tarayıcıya yüklenmiş) Excel verisi varsa gömülü veriyi geçersiz kıl */
 try {
   const saved = localStorage.getItem(LS_KEY);
@@ -1398,13 +1571,14 @@ try {
   }
 } catch (e) { }
 recompute();
-document.getElementById('btnReset').hidden = (DATA === EMBEDDED);
+syncResetBtn();
 
 fit();
 renderAll();
 tick();
 setRot(true);
 setInterval(tick, 1000);
+startLive(); /* canlı senkron: abacusai.app verisi otomatik akar */
 </script>
 </body>
 </html>

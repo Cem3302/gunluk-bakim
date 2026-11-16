@@ -1,0 +1,49 @@
+name: Pano canlı senkron (abacusai -> Firebase)
+
+# periyodikbakim.abacusai.app CORS başlığı göndermediği için tarayıcı API'yi
+# doğrudan okuyamaz. Bu iş her 5 dakikada API'yi sunucu tarafında çeker ve
+# Firebase Realtime Database'e yazar; dashboard.html buradan SSE ile anında,
+# ayrıca 5 dakikada bir REST ile güncellenir.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: API -> Firebase
+        env:
+          API_URL: https://periyodikbakim.abacusai.app/api/maintenance
+          DB_URL: https://pemba-bakim-default-rtdb.europe-west1.firebasedatabase.app/gunluk/board.json
+        run: |
+          set -euo pipefail
+
+          curl -fsS --retry 3 --retry-delay 5 --max-time 60 "$API_URL" -o raw.json
+
+          # beklenen kategori anahtarlarından en az biri gelmeli
+          jq -e 'has("heavyTruck") or has("lightVehicle") or has("heavyEquipment") or has("lightEquipment")' raw.json > /dev/null
+
+          TOTAL=$(jq '[.[] | length] | add // 0' raw.json)
+          if [ "$TOTAL" -lt 1 ]; then
+            echo "::error::API hiç makine satırı döndürmedi"
+            exit 1
+          fi
+
+          jq -c --arg at "$(date -u +'%Y-%m-%d %H:%M')" '{ at: $at, data: . }' raw.json > board.json
+
+          curl -fsS --retry 3 --retry-delay 5 --max-time 60 \
+            -X PUT -H 'Content-Type: application/json' \
+            --data-binary @board.json "$DB_URL" > /dev/null
+
+          echo "Firebase yazıldı: $(wc -c < board.json) bayt, $TOTAL makine, $(jq -r '.at' board.json)"

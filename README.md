@@ -36,6 +36,25 @@ tarayıcıda açmanız yeterli (sunucu, kurulum ve internet gerektirmez).
 - **Mobil uyumlu** — telefonda geniş tablo kart listesine döner; detaylar ▸
   düğmesiyle açılır, menü yatay kaydırılır, dokunmatik hedefler büyütülür.
 
+## Pano — canlı senkron (`dashboard.html`)
+
+`dashboard.html` (16:9 duvar/TV panosu) verisini **periyodikbakim.abacusai.app**
+adresinden alır ve kendiliğinden güncellenir:
+
+1. `.github/workflows/live-sync.yml` her **5 dakikada** bir Abacus API'sini
+   (`/api/maintenance`) sunucu tarafında okur ve Firebase Realtime Database'e yazar
+   (`gunluk/board.json`). Tarayıcı bu API'yi doğrudan çağıramaz çünkü API CORS
+   başlığı göndermiyor.
+2. Pano bu yolu **SSE** ile dinler → pano açıkken yeni veri **1–2 saniyede**,
+   sayfa yenilemeden düşer. SSE koparsa 5 dakikada bir REST yedeği devreye girer.
+3. Sağ üstteki rozet durumu gösterir: **Canlı · ss:dd** (yeşil),
+   **Gecikmeli** (12 dakikadan eski veri), **Çevrimdışı**, **Yerel dosya**.
+4. Elle **Excel yükleme** (📊 düğmesi / sürükle-bırak) hâlâ çalışır; dosya
+   yüklenince canlı senkron duraklar, **↺ Varsayılan** ile canlıya dönülür.
+
+Kategoriler ve eşikler uygulamayla birebir: Heavy Truck / Light Vehicle (KM,
+1000 km uyarı eşiği), Heavy Equipment / Light Equipment (Saat, 50 saat).
+
 ## Uyarı kuralı
 
 Son bakımdan bu yana geçen gün sayısı (bugün dahil) ≥ eşik ise uyarı verilir.
