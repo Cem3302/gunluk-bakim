@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+  # iş dosyası değişince hemen bir kez çalıştır (zamanlanmış ilk koşuyu da tetikler)
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-sync.yml'
 
 permissions:
   contents: read
