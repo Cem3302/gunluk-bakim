@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Günlük Bakım Panosu — 16:9</title>
+<meta name="theme-color" content="#0a1120">
+<style>
+/* Günlük Bakım — 16:9 duvar/TV panosu (tasarım 1920x1080, ekrana otomatik ölçeklenir) */
+:root{
+  --bg:#0a1120; --panel:#101a30; --panel2:#0d1526; --line:#1f2c47;
+  --t:#e8eefb; --muted:#93a6c9; --red:#ef4444; --amber:#f59e0b; --green:#22c55e;
+  --blue:#3b82f6; --cyan:#38bdf8; --slate:#64748b;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; background:#05080f; overflow:hidden; color:var(--t);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+#stage{
+  position:absolute; left:50%; top:50%; width:1920px; height:1080px; transform-origin:center center;
+  background:var(--bg); display:grid; grid-template-rows:84px 124px minmax(0,1fr) 60px; gap:18px;
+  padding:22px 28px; overflow:hidden;
+}
+
+/* ---------- başlık ---------- */
+.hd{ display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.brand{ display:flex; align-items:center; gap:16px; min-width:0; }
+.logo{ width:56px; height:56px; border-radius:14px; display:grid; place-items:center; font-size:27px;
+  background:linear-gradient(145deg,#1d4ed8,#0ea5e9); box-shadow:0 8px 22px rgba(14,165,233,.28); }
+.brand h1{ font-size:27px; font-weight:800; letter-spacing:.2px; line-height:1.15; }
+.brand p{ font-size:13.5px; color:var(--muted); margin-top:3px; }
+.hd-right{ display:flex; align-items:center; gap:16px; }
+.when{ text-align:right; }
+.when .date{ font-size:14px; color:var(--muted); }
+.when .clock{ font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.05; letter-spacing:.5px; }
+.live{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#86efac;
+  background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.35); padding:8px 13px; border-radius:999px; white-space:nowrap; }
+.live.off{ color:#fca5a5; background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.35); }
+.live i{ width:9px; height:9px; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor; }
+.btn{ background:#16233d; border:1px solid var(--line); color:#dbeafe; font-size:13.5px; font-weight:700;
+  padding:9px 15px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+.btn:hover{ background:#1d2f51; }
+
+/* ---------- KPI ---------- */
+.kpis{ display:grid; grid-template-columns:repeat(6,1fr); gap:16px; }
+.kpi{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line); border-radius:16px;
+  padding:15px 18px; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:center; }
+.kpi::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--blue); }
+.kpi.red::before{ background:var(--red); } .kpi.amber::before{ background:var(--amber); }
+.kpi.green::before{ background:var(--green); } .kpi.slate::before{ background:var(--slate); }
+.kpi .lab{ font-size:12.5px; text-transform:uppercase; letter-spacing:1.05px; color:var(--muted); font-weight:700; }
+.kpi .val{ font-size:44px; font-weight:800; line-height:1.05; margin-top:5px; font-variant-numeric:tabular-nums; }
+.kpi .note{ font-size:12.5px; color:var(--muted); margin-top:3px; }
+.kpi.red .val{ color:#fca5a5; } .kpi.amber .val{ color:#fcd34d; }
+.kpi.green .val{ color:#86efac; } .kpi.slate .val{ color:#cbd5e1; }
+
+/* ---------- orta alan ---------- */
+.mid{ display:grid; grid-template-columns:1.62fr 1fr; gap:18px; min-height:0; }
+.col{ display:flex; flex-direction:column; gap:18px; min-height:0; }
+.card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; display:flex; flex-direction:column;
+  min-height:0; overflow:hidden; }
+.card.fill{ flex:1; }
+.ch{ display:flex; align-items:baseline; gap:12px; padding:14px 18px 10px; }
+.ch h2{ font-size:17px; font-weight:800; letter-spacing:.3px; white-space:nowrap; }
+.ch .hint{ font-size:12.5px; color:var(--muted); margin-left:auto; white-space:nowrap; }
+.cb{ padding:0 18px 14px; min-height:0; overflow:hidden; }
+
+/* uyarı tablosu */
+.tbl{ width:100%; border-collapse:collapse; }
+.tbl th{ font-size:11.5px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); text-align:left;
+  padding:7px 8px; border-bottom:1px solid var(--line); font-weight:700; }
+.tbl td{ padding:7px 8px; border-bottom:1px solid rgba(31,44,71,.55); font-size:15px; }
+.tbl tr:last-child td{ border-bottom:0; }
+.tbl .code{ font-weight:800; color:#bfdbfe; letter-spacing:.4px; white-space:nowrap; }
+.tbl .code small{ display:block; font-size:11.5px; font-weight:600; color:var(--muted); letter-spacing:.2px;
+  max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tbl .grp{ color:#c7d5ee; font-size:14px; }
+.tbl .grp small{ display:block; color:var(--muted); font-size:12px; }
+.tbl .dt{ color:var(--muted); font-size:13.5px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tbl .right{ text-align:right; white-space:nowrap; }
+.chip{ display:inline-block; font-size:12px; font-weight:800; padding:4px 10px; border-radius:999px; letter-spacing:.25px; }
+.chip.danger{ background:rgba(239,68,68,.16); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
+.chip.warn{ background:rgba(245,158,11,.15); color:#fcd34d; border:1px solid rgba(245,158,11,.4); }
+.chip.slate{ background:rgba(100,116,139,.2); color:#cbd5e1; border:1px solid rgba(100,116,139,.45); }
+.empty{ padding:26px 6px; text-align:center; color:var(--muted); font-size:15px; }
+.empty b{ color:#86efac; display:block; font-size:19px; margin-bottom:6px; }
+
+/* 14 gün grafiği */
+.chart{ flex:none; height:196px; }
+.bars{ display:grid; grid-template-columns:repeat(14,1fr); gap:9px; height:100%; min-height:0; }
+.bar{ display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; height:100%; min-height:0; }
+.bar .n{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.bar .col{ flex:1; width:100%; display:flex; align-items:flex-end; min-height:0; }
+.bar .fill{ width:100%; border-radius:6px 6px 2px 2px; background:linear-gradient(180deg,#38bdf8,#2563eb); min-height:3px; }
+.bar.today .fill{ background:linear-gradient(180deg,#4ade80,#22c55e); }
+.bar .d{ font-size:11px; color:var(--muted); white-space:nowrap; }
+
+/* donut */
+.donutcard{ flex:none; height:322px; }
+.donutwrap{ display:flex; align-items:center; gap:26px; height:100%; padding-bottom:18px; }
+.donut{ width:176px; height:176px; border-radius:50%; flex:none; position:relative;
+  background:conic-gradient(var(--line) 0 100%); }
+.donut::after{ content:""; position:absolute; inset:26px; border-radius:50%; background:var(--panel); }
+.donut .core{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; }
+.donut .core b{ font-size:40px; font-weight:800; line-height:1; color:#fca5a5; font-variant-numeric:tabular-nums; }
+.donut .core span{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-top:6px; text-align:center; }
+.dlegend{ flex:1; min-width:0; }
+.drow{ display:flex; align-items:center; gap:9px; padding:6px 0; border-bottom:1px solid rgba(31,44,71,.5); }
+.drow:last-child{ border-bottom:0; }
+.dot{ width:11px; height:11px; border-radius:3px; flex:none; }
+.dname{ font-size:14px; color:#dbe7fb; }
+.dval{ margin-left:auto; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; }
+.dpct{ width:44px; text-align:right; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
+
+/* arızalar */
+.fault{ padding:10px 0; border-bottom:1px solid rgba(31,44,71,.55); }
+.fault:last-child{ border-bottom:0; }
+.f-top{ display:flex; align-items:center; gap:10px; }
+.f-top b{ font-size:15px; color:#bfdbfe; letter-spacing:.3px; }
+.f-top .chip{ margin-left:auto; }
+.f-desc{ font-size:13.5px; color:#c7d5ee; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.f-meta{ font-size:11.5px; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* alt bilgi */
+.ft{ display:flex; align-items:center; gap:22px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); }
+.legend{ display:flex; align-items:center; gap:16px; }
+.li{ display:flex; align-items:center; gap:7px; }
+.ft .src{ margin-left:auto; text-align:right; }
+.ft b{ color:#dbe7fe; font-weight:700; }
+
+@media (max-width:1100px){
+  html,body{ overflow:auto; }
+  #stage{ position:static; transform:none !important; width:auto; height:auto; display:block; padding:14px; }
+  .hd{ flex-wrap:wrap; gap:12px; }
+  .brand h1{ font-size:21px; }
+  .clock{ font-size:26px !important; }
+  .kpis{ grid-template-columns:repeat(2,1fr); gap:10px; margin:14px 0; }
+  .kpi .val{ font-size:34px; }
+  .mid{ display:block; }
+  .card{ margin-bottom:14px; }
+  .donutcard,.chart{ height:auto; }
+  .donutwrap{ padding:0 0 10px; }
+  .chart .cb{ height:180px; }
+  .tbl .dt,.tbl .grp{ display:none; }
+  .tbl td{ padding:8px 6px; }
+  .ft{ flex-wrap:wrap; gap:10px; padding-top:10px; }
+  .ft .src{ margin-left:0; text-align:left; }
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <header class="hd">
+    <div class="brand">
+      <div class="logo">🛠</div>
+      <div>
+        <h1>Günlük Bakım Panosu</h1>
+        <p>Zanzibar · filo bakım takibi · 16:9 ekran panosu</p>
+      </div>
+    </div>
+    <div class="hd-right">
+      <div class="when">
+        <div class="date" id="date"></div>
+        <div class="clock" id="clock"></div>
+      </div>
+      <div class="live" id="live"><i></i><span id="liveTxt">Bağlanıyor…</span></div>
+      <a class="btn" href="index.html">↗ Uygulama</a>
+      <button class="btn" id="btnFs">⛶ Tam Ekran</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="mid">
+    <div class="col">
+      <div class="card fill">
+        <div class="ch">
+          <h2>Gecikmiş / Bekleyen Ekipmanlar</h2>
+          <span class="hint" id="warnHint"></span>
+        </div>
+        <div class="cb" id="warnBox"></div>
+      </div>
+      <div class="card chart">
+        <div class="ch"><h2>Son 14 Gün — Bakılan Ekipman</h2><span class="hint" id="chartHint"></span></div>
+        <div class="cb"><div class="bars" id="bars"></div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card donutcard">
+        <div class="ch"><h2>Durum Dağılımı</h2><span class="hint" id="donutHint"></span></div>
+        <div class="cb donutwrap">
+          <div class="donut" id="donut"><div class="core"><b id="donutNum">0</b><span>gecikmiş</span></div></div>
+          <div class="dlegend" id="dlegend"></div>
+        </div>
+      </div>
+      <div class="card fill">
+        <div class="ch"><h2>Açık Arızalar</h2><span class="hint" id="faultHint"></span></div>
+        <div class="cb" id="faultBox"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ft">
+    <div class="legend">
+      <span class="li"><span class="dot" style="background:var(--green)"></span>Bugün</span>
+      <span class="li"><span class="dot" style="background:var(--cyan)"></span>Güncel</span>
+      <span class="li"><span class="dot" style="background:var(--amber)"></span>Dün</span>
+      <span class="li"><span class="dot" style="background:var(--red)"></span>Gecikmiş</span>
+      <span class="li"><span class="dot" style="background:#475569"></span>Kayıt yok</span>
+    </div>
+    <div class="ft-today" id="ftToday"></div>
+    <div class="src" id="src"></div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE = 'gunlukBakim.v1';
+  var ROWS_PER_PAGE = 11;
+  var state = { data: null, seed: null, raw: null, at: 0, page: 0, timer: null };
+
+  /* ---------- yardımcılar ---------- */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parseISO(iso) { var p = String(iso).split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+  function diffDays(a, b) { return Math.round((parseISO(b) - parseISO(a)) / 86400000); }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    var p = iso.split('-');
+    return p[2] + '.' + p[1] + '.' + p[0];
+  }
+  function fmtShort(iso) { var p = iso.split('-'); return p[2] + '.' + p[1]; }
+  function fmt(n) { return (Number(n) || 0).toLocaleString('tr-TR'); }
+  function faultDone(status) {
+    var v = String(status || '').toLowerCase();
+    return ['tamamlandi', 'tamamlandı', 'done', 'resolved', 'closed', 'kapandi', 'kapandı', 'cozuldu', 'çözüldü']
+      .some(function (k) { return v.indexOf(k) !== -1; });
+  }
+
+  /* ---------- veri ---------- */
+  function readSaved() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORE); } catch (e) { return { raw: null, data: null }; }
+    if (!raw) return { raw: null, data: null };
+    try {
+      var d = JSON.parse(raw);
+      if (!d || !Array.isArray(d.equipment)) return { raw: raw, data: null };
+      return { raw: raw, data: d };
+    } catch (e) { return { raw: raw, data: null }; }
+  }
+
+  /* localStorage boşsa (örn. yeni bir TV/tarayıcı): ekipman listesini index.html'den al */
+  function loadSeed() {
+    return fetch('index.html', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
+      .then(function (txt) {
+        var at = txt.indexOf('window.EQUIPMENT_SEED');
+        if (at < 0) return [];
+        var start = txt.indexOf('[', at);
+        if (start < 0) return [];
+        var depth = 0, inStr = false, q = '', escNext = false;
+        for (var i = start; i < txt.length; i++) {
+          var ch = txt[i];
+          if (inStr) {
+            if (escNext) escNext = false;
+            else if (ch === '\\') escNext = true;
+            else if (ch === q) inStr = false;
+          } else if (ch === '"' || ch === "'") { inStr = true; q = ch; }
+          else if (ch === '[') depth++;
+          else if (ch === ']') {
+            depth--;
+            if (depth === 0) {
+              try { return JSON.parse(txt.slice(start, i + 1)); } catch (e) { return []; }
+            }
+          }
+        }
+        return [];
+      })
+      .catch(function () { return []; });
+  }
+
+  function buildModel() {
+    var st = state.data;
+    var eqs = (st && st.equipment && st.equipment.length)
+      ? st.equipment
+      : (state.seed || []).map(function (e) { return { id: e.n, n: e.n, t: e.t, b: e.b, m: e.m, s: e.s }; });
+    var records = (st && st.records) || {};
+    var warnDays = Math.max(1, parseInt((st && st.settings && st.settings.warnDays) || 2, 10) || 2);
+    var today = todayISO();
+
+    var last = {}, firstVisit = null;
+    Object.keys(records).sort().forEach(function (d) {
+      var items = (records[d] && records[d].items) || {};
+      var any = false;
+      for (var id in items) { if (items[id] && items[id].v) { last[id] = d; any = true; } }
+      if (any && !firstVisit) firstVisit = d;
+    });
+
+    var counts = { today: 0, ok: 0, pending: 0, warn: 0, never: 0 };
+    var rows = eqs.map(function (eq) {
+      var l = last[eq.id] || null, missed = 0, s;
+      if (l) {
+        missed = Math.max(0, diffDays(l, today));
+        s = missed >= warnDays ? 'warn' : (missed === 0 ? 'today' : (missed === 1 ? 'pending' : 'ok'));
+      } else {
+        var start = (eq.createdAt && firstVisit && eq.createdAt > firstVisit) ? eq.createdAt : firstVisit;
+        if (start) {
+          missed = Math.max(0, diffDays(start, today) + 1);
+          s = missed >= warnDays ? 'warn' : 'never';
+        } else { missed = 0; s = 'never'; }
+      }
+      counts[s]++;
+      return { id: eq.id, n: eq.n, t: eq.t, b: eq.b, m: eq.m, last: l, missed: missed, st: s };
+    });
+
+    var order = { warn: 0, never: 1, pending: 2, ok: 3, today: 4 };
+    var watch = rows.filter(function (r) { return r.st !== 'today' && r.st !== 'ok'; })
+      .sort(function (a, b) {
+        if (order[a.st] !== order[b.st]) return order[a.st] - order[b.st];
+        if (a.missed !== b.missed) return b.missed - a.missed;
+        return String(a.n).localeCompare(String(b.n));
+      });
+
+    var rec = records[today];
+    var todayVisits = 0;
+    if (rec && rec.items) {
+      for (var k in rec.items) { if (rec.items[k] && rec.items[k].v) todayVisits++; }
+    }
+
+    var hist = [];
+    for (var i = 13; i >= 0; i--) {
+      var dt = new Date(parseISO(today) - i * 86400000);
+      var iso = dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate());
+      var items = (records[iso] && records[iso].items) || {};
+      var n = 0;
+      for (var k2 in items) { if (items[k2] && items[k2].v) n++; }
+      hist.push({ iso: iso, n: n });
+    }
+
+    var faults = (st && Array.isArray(st.faults)) ? st.faults : [];
+    var active = faults.filter(function (f) { return !faultDone(f.status); })
+      .sort(function (a, b) {
+        return String(b.start || b.createdAt || '').localeCompare(String(a.start || a.createdAt || ''));
+      });
+
+    var tyres = (st && Array.isArray(st.tyres)) ? st.tyres : [];
+    var month = today.slice(0, 7);
+    var tyresMonth = tyres.filter(function (r) { return String(r.date || '').slice(0, 7) === month; }).length;
+    var tyresToday = tyres.filter(function (r) { return r.date === today; }).length;
+
+    return {
+      total: rows.length, rows: rows, watch: watch, counts: counts, warnDays: warnDays,
+      todayVisits: todayVisits, hist: hist, active: active, faults: faults,
+      tyresMonth: tyresMonth, tyresToday: tyresToday,
+      attender: (rec && rec.attender) || '', shift: rec && rec.shift === 'night' ? 'Gece' : (rec ? 'Gündüz' : ''),
+      hasData: !!st
+    };
+  }
+
+  /* ---------- KPI ---------- */
+  function renderKpis(m) {
+    var pct = m.total ? Math.round(m.todayVisits / m.total * 100) : 0;
+    var k = [
+      { c: '', lab: 'Toplam Ekipman', val: fmt(m.total), note: m.hasData ? 'kayıtlı filo' : 'Excel listesi' },
+      { c: 'green', lab: 'Bugün Bakılan', val: fmt(m.todayVisits), note: '%' + pct + ' kapsam' },
+      { c: 'red', lab: 'Gecikmiş', val: fmt(m.counts.warn), note: '≥' + m.warnDays + ' gün bakımsız' },
+      { c: 'slate', lab: 'Kayıt Yok', val: fmt(m.counts.never), note: 'hiç bakım kaydı yok' },
+      { c: 'amber', lab: 'Açık Arıza', val: fmt(m.active.length), note: fmt(m.faults.length) + ' toplam kayıt' },
+      { c: '', lab: 'Bu Ay Lastik', val: fmt(m.tyresMonth), note: 'bugün ' + fmt(m.tyresToday) }
+    ];
+    document.getElementById('kpis').innerHTML = k.map(function (x) {
+      return '<div class="kpi ' + x.c + '"><div class="lab">' + esc(x.lab) + '</div>' +
+        '<div class="val">' + x.val + '</div><div class="note">' + esc(x.note) + '</div></div>';
+    }).join('');
+  }
+
+  /* ---------- uyarı listesi ---------- */
+  function warnChip(r) {
+    if (r.st === 'warn') return '<span class="chip danger">' + r.missed + ' gün</span>';
+    if (r.st === 'pending') return '<span class="chip warn">1 gün</span>';
+    return '<span class="chip slate">kayıt yok</span>';
+  }
+  function renderWarn(m) {
+    var box = document.getElementById('warnBox');
+    var hint = document.getElementById('warnHint');
+    if (!m.watch.length) {
+      hint.textContent = '';
+      box.innerHTML = '<div class="empty"><b>✓ Bakımı geciken ekipman yok</b>Tüm ekipman son ' +
+        m.warnDays + ' gün içinde bakımdan geçti.</div>';
+      return;
+    }
+    var pages = Math.ceil(m.watch.length / ROWS_PER_PAGE);
+    if (state.page >= pages) state.page = 0;
+    var slice = m.watch.slice(state.page * ROWS_PER_PAGE, state.page * ROWS_PER_PAGE + ROWS_PER_PAGE);
+    hint.textContent = fmt(m.watch.length) + ' ekipman' + (pages > 1 ? ' · sayfa ' + (state.page + 1) + '/' + pages : '');
+    var head = '<table class="tbl"><thead><tr><th>Ekipman</th><th>Marka / Model</th><th>Son Bakım</th>' +
+      '<th class="right">Gecikme</th></tr></thead><tbody>';
+    var body = slice.map(function (r) {
+      return '<tr><td class="code">' + esc(r.n) + '<small>' + esc(r.t) + '</small></td>' +
+        '<td class="grp">' + esc(r.b) + '<small>' + esc(r.m || '—') + '</small></td>' +
+        '<td class="dt">' + esc(r.last ? fmtDate(r.last) : '—') + '</td>' +
+        '<td class="right">' + warnChip(r) + '</td></tr>';
+    }).join('');
+    box.innerHTML = head + body + '</tbody></table>';
+  }
+
+  /* ---------- 14 gün ---------- */
+  function renderBars(m) {
+    var max = 0;
+    m.hist.forEach(function (h) { if (h.n > max) max = h.n; });
+    var today = todayISO();
+    document.getElementById('bars').innerHTML = m.hist.map(function (h) {
+      var pct = max ? Math.max(3, Math.round(h.n / max * 100)) : 3;
+      return '<div class="bar' + (h.iso === today ? ' today' : '') + '">' +
+        '<div class="n">' + (h.n ? h.n : '') + '</div>' +
+        '<div class="col"><div class="fill" style="height:' + pct + '%"></div></div>' +
+        '<div class="d">' + esc(fmtShort(h.iso)) + '</div></div>';
+    }).join('');
+    var total = m.hist.reduce(function (a, h) { return a + h.n; }, 0);
+    document.getElementById('chartHint').textContent = 'toplam ' + fmt(total) + ' bakım · bugün ' + fmt(m.todayVisits);
+  }
+
+  /* ---------- donut ---------- */
+  function renderDonut(m) {
+    var segs = [
+      { k: 'Bugün', v: m.counts.today, c: '#22c55e' },
+      { k: 'Güncel', v: m.counts.ok, c: '#38bdf8' },
+      { k: 'Dün', v: m.counts.pending, c: '#f59e0b' },
+      { k: 'Gecikmiş', v: m.counts.warn, c: '#ef4444' },
+      { k: 'Kayıt yok', v: m.counts.never, c: '#475569' }
+    ];
+    var total = segs.reduce(function (a, s) { return a + s.v; }, 0) || 1;
+    var acc = 0, stops = [];
+    segs.forEach(function (s) {
+      var from = acc / total * 100;
+      acc += s.v;
+      var to = acc / total * 100;
+      if (s.v > 0) stops.push(s.c + ' ' + from.toFixed(2) + '% ' + to.toFixed(2) + '%');
+    });
+    document.getElementById('donut').style.background = 'conic-gradient(' + (stops.join(',') || '#1f2c47 0 100%') + ')';
+    document.getElementById('donutNum').textContent = fmt(m.counts.warn);
+    document.getElementById('dlegend').innerHTML = segs.map(function (s) {
+      return '<div class="drow"><span class="dot" style="background:' + s.c + '"></span>' +
+        '<span class="dname">' + esc(s.k) + '</span>' +
+        '<span class="dval">' + fmt(s.v) + '</span>' +
+        '<span class="dpct">' + Math.round(s.v / total * 100) + '%</span></div>';
+    }).join('');
+    document.getElementById('donutHint').textContent = fmt(m.total) + ' ekipman';
+  }
+
+  /* ---------- arızalar ---------- */
+  function renderFaults(m) {
+    var box = document.getElementById('faultBox');
+    document.getElementById('faultHint').textContent = m.active.length ? fmt(m.active.length) + ' açık' : '';
+    if (!m.active.length) {
+      box.innerHTML = '<div class="empty"><b>✓ Açık arıza yok</b>' +
+        (m.faults.length ? 'Tüm arıza kayıtları kapatılmış.' : 'Henüz arıza kaydı girilmemiş.') + '</div>';
+      return;
+    }
+    box.innerHTML = m.active.slice(0, 6).map(function (f) {
+      var open = f.start ? Math.max(0, diffDays(f.start, todayISO())) : null;
+      var meta = [f.report, f.start ? fmtDate(f.start) + (open !== null ? ' · ' + open + ' gün' : '') : '']
+        .filter(Boolean).join(' · ');
+      return '<div class="fault"><div class="f-top"><b>' + esc(f.eq) + '</b>' +
+        '<span class="chip ' + (faultDone(f.status) ? 'slate' : 'danger') + '">' + esc(f.status || 'Açık') + '</span></div>' +
+        '<div class="f-desc">' + esc(f.desc || '—') + '</div>' +
+        '<div class="f-meta">' + esc(meta || '—') + '</div></div>';
+    }).join('');
+  }
+
+  /* ---------- alt bilgi ---------- */
+  function renderFooter(m) {
+    var who = m.attender ? '<b>' + esc(m.attender) + '</b> · ' + esc(m.shift) : 'Bugün bakan kişi girilmemiş';
+    document.getElementById('ftToday').innerHTML = 'Bugün: ' + who;
+    document.getElementById('src').innerHTML = (m.hasData
+      ? 'Kaynak: bu tarayıcıdaki günlük bakım kayıtları (<b>' + STORE + '</b>)'
+      : 'Kaynak: <b>ZANZIBAR EQUIPMENT STATUS.xlsx</b> ekipman listesi — bu tarayıcıda bakım kaydı yok');
+  }
+
+  function renderAll() {
+    var m = buildModel();
+    renderKpis(m);
+    renderWarn(m);
+    renderBars(m);
+    renderDonut(m);
+    renderFaults(m);
+    renderFooter(m);
+    return m;
+  }
+
+  /* ---------- saat + canlılık ---------- */
+  function tick() {
+    fit(); /* pencere/panel ölçüsü sonradan değişirse pano kendini düzeltir */
+    var d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    document.getElementById('date').textContent = d.toLocaleDateString('tr-TR',
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function setBadge(ok) {
+    var el = document.getElementById('live');
+    el.className = 'live' + (ok ? '' : ' off');
+    if (!ok) { document.getElementById('liveTxt').textContent = 'Kayıt yok'; return; }
+    var d = new Date(state.at);
+    document.getElementById('liveTxt').textContent = 'Canlı · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function refresh(force) {
+    var got = readSaved();
+    if (force || got.raw !== state.raw) {
+      state.raw = got.raw;
+      state.data = got.data;
+      state.at = Date.now();
+      state.page = 0;
+      renderAll();
+      setBadge(!!got.data);
+    } else if (!state.at) {
+      state.at = Date.now();
+      setBadge(!!state.data);
+    }
+  }
+
+  /* ---------- ölçek (16:9) ---------- */
+  var mqSmall = window.matchMedia('(max-width:1100px)');
+  function fit() {
+    var stage = document.getElementById('stage');
+    if (mqSmall.matches) { stage.style.transform = ''; return; }
+    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    if (s > 0) stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  /* ---------- olaylar ---------- */
+  document.getElementById('btnFs').addEventListener('click', function () {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function () { });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'f' || e.key === 'F') document.getElementById('btnFs').click();
+  });
+  window.addEventListener('storage', function (e) { if (e.key === STORE) refresh(true); });
+
+  /* ---------- başlat ---------- */
+  fit();
+  refresh(false);
+  if (!state.data) {
+    loadSeed().then(function (seed) { state.seed = seed; renderAll(); });
+  }
+  tick();
+  setInterval(tick, 1000);
+  setInterval(function () { refresh(false); }, 5000);
+
+  /* çok ekipman varsa uyarı listesi kendiliğinden sayfa değiştirir */
+  state.timer = setInterval(function () {
+    if (document.hidden || !state.data) return;
+    var m = buildModel();
+    if (m.watch.length <= ROWS_PER_PAGE) return;
+    state.page++;
+    renderWarn(m);
+  }, 9000);
+})();
+</script>
+</body>
+</html>
