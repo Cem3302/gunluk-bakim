@@ -1,6 +1,6 @@
 # Günlük Bakım ve Arıza Takibi — Daily Maintenance & Fault Tracking
 
-`daily maintenance.xlsx` dosyanızdan çıkarılan **533 ekipmanlık** listeyle çalışan
+`ZANZIBAR EQUIPMENT STATUS.xlsx` dosyanızdan çıkarılan **736 ekipmanlık** listeyle çalışan
 web tabanlı günlük bakım uygulaması. **Tek dosya:** `index.html` — çift tıklayıp
 tarayıcıda açmanız yeterli (sunucu, kurulum ve internet gerektirmez).
 
@@ -10,7 +10,7 @@ tarayıcıda açmanız yeterli (sunucu, kurulum ve internet gerektirmez).
 
 ## Özellikler
 
-- **Excel'den gelen ana liste** — 533 ekipman: No, Tip, Marka, Model, Spesifikasyon.
+- **Excel'den gelen ana liste** — 736 ekipman: No, Tip, Marka, Model, Spesifikasyon.
   Bakım formu Excel'deki sütunların aynısıdır: Saat, Konum, Yağlama (GRS),
   Hava Filtresi (AIR) ve 9 yağ tipi (15W-40, 68, ACX30, ACX50, 80W-90, 85W-90,
   ATF DIII, COOL ELF, 85W-140) + Gözlem.
@@ -28,7 +28,7 @@ tarayıcıda açmanız yeterli (sunucu, kurulum ve internet gerektirmez).
   "son bakım" tarihiyle birlikte. Uyarıya tıklayınca o ekipman listede gösterilir.
 - **Ekipman ekleme / silme** — yeni ekipman ekleyin, listeden silin
   (geçmiş bakım kayıtları korunur). "Excel listesine dön" ile silinenler hariç
-  orijinal 533'lük liste geri gelir.
+  orijinal 736'lık liste geri gelir.
 - **TR / EN dil seçeneği** — arayüzün tamamı Türkçe/İngilizce; ekipman tipleri
   Türkçe arayüzde Türkçeleştirilir (DÖZER, TEKERLEKLİ EKSKAVATÖR, ...).
 - **Yedekleme** — tüm veriyi JSON olarak indirme / geri yükleme, tek tıkla
